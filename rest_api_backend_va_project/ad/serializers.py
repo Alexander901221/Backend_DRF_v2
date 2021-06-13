@@ -27,3 +27,11 @@ class AdSerializer(serializers.ModelSerializer):
             'number_of_person', 'number_of_girls', 'number_of_boys',
             'party_date', 'participants', 'is_published', 'create_ad'
         )
+
+
+class UpdateAdSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Ad
+        fields = (
+            'title', 'party_date', 'number_of_girls', 'number_of_boys'
+        )

@@ -3,7 +3,7 @@ from rest_framework.exceptions import ValidationError
 from django.http import JsonResponse
 
 from .models import Ad
-from .serializers import CreateAdSerializer, AdSerializer
+from .serializers import CreateAdSerializer, AdSerializer, UpdateAdSerializer
 from utils.send_letter_on_email.send_letter_on_email import Util
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
@@ -101,7 +101,7 @@ class AdCreateView(APIView):
 
 class AdUpdateView(generics.UpdateAPIView):
     """Update ad"""
-    serializer_class = CreateAdSerializer
+    serializer_class = UpdateAdSerializer
     permission_classes = [permissions.IsAuthenticated]
     queryset = Ad.objects.all()
 
