@@ -43,10 +43,14 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
     'user',
-    'ad'
+    'ad',
+    'debug_toolbar',
+    'django_extensions',  # pip install Werkzeug  and  pip install django-extensions
 ]
 
 MIDDLEWARE = [
+    'debug_toolbar.middleware.DebugToolbarMiddleware',
+    'debug_toolbar_force.middleware.ForceDebugToolbarMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -212,4 +216,17 @@ CORS_ALLOW_HEADERS = [
     'x-csrftoken',
     'x-requested-with',
     'Content-Disposition'
+]
+
+INTERNAL_IPS = [
+    '127.0.0.1',
+]
+
+
+# bcrypt settings --> hash password
+PASSWORD_HASHERS = [
+    'django.contrib.auth.hashers.BCryptSHA256PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2PasswordHasher',
+    'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
+    'django.contrib.auth.hashers.Argon2PasswordHasher',
 ]

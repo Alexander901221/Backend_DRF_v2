@@ -1,6 +1,6 @@
+import bcrypt
 from rest_framework import generics, permissions, views, status
 from rest_framework.parsers import MultiPartParser, FormParser
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from django.http import JsonResponse
 from django.db import IntegrityError
@@ -8,34 +8,32 @@ from django.conf import settings
 from random import randint
 import os
 
-from .serializers import CreateUserSerializers, UserSerializers, \
+from .serializers import UserSerializers, \
     ChangePasswordSerializer, GetMeSerializer, UpdateUserSerializers
 from .models import User
 from utils.send_letter_on_email.send_letter_on_email import Util
 from utils.optimization_photo.optimization_photo import optimization_photo
 from utils.format_images.format_images import check_uploaded_image_format
 from utils.exception_handling.exception_views import base_view
+from django.contrib.auth.hashers import check_password, make_password
 
 
 class UserListView(generics.ListAPIView):
     """Get all users (GET)"""
     serializer_class = UserSerializers
     permission_classes = [permissions.IsAdminUser]
-    queryset = User.objects.all()
+    queryset = User.objects.all() \
+        .only('id', 'username', 'first_name', 'last_name', 'email', 'city', 'birth_day', 'sex', 'photo',
+              'confirm_email', 'confirm_account')
 
 
 class UserRetrieveAPIView(generics.RetrieveAPIView):
     """Getting user by param (GET)"""
     serializer_class = UserSerializers
     permission_classes = [permissions.IsAdminUser]
-    queryset = User.objects.all()
-
-
-class UserCreateView(generics.CreateAPIView):
-    """Create user (post)"""
-    serializer_class = CreateUserSerializers
-    permission_classes = [permissions.IsAdminUser]
-    queryset = User.objects.all()
+    queryset = User.objects.all() \
+        .only('id', 'username', 'first_name', 'last_name', 'email', 'city', 'birth_day', 'sex', 'photo',
+              'confirm_email', 'confirm_account')
 
 
 class UserUpdateData(generics.UpdateAPIView):
@@ -46,7 +44,7 @@ class UserUpdateData(generics.UpdateAPIView):
     queryset = User.objects.all()
 
     @base_view
-    def update(self, request, *args, **kwargs):
+    def put(self, request, *args, **kwargs):
         try:
             data = request.data
             path = 'images/' + str(request.user.photo)
@@ -119,9 +117,8 @@ class RegisterView(views.APIView):
     def post(self, request):
         try:
             data = request.data
-            checkEmail = User.objects.filter(email=data['email'])
-
-            if checkEmail:
+            check_email_exist = User.objects.filter(email=data['email']).exists()
+            if check_email_exist:
                 return JsonResponse(
                     {
                         'status': 'error',
@@ -142,6 +139,8 @@ class RegisterView(views.APIView):
             if result:
                 return result
 
+            code = randint(123456, 987654)
+
             user = User.objects.create_user(
                 data['username'],
                 email=data['email'],
@@ -150,12 +149,9 @@ class RegisterView(views.APIView):
                 photo=data['photo'],
                 city=data['city'],
                 birth_day=data['birth_day'],
-                sex=data['sex']
+                sex=data['sex'],
+                code_confirm=code
             )
-            code = randint(123456, 987654)
-            user.code_confirm = code
-
-            user.save()
 
             # Optimization upload photo
             optimization_photo(
@@ -165,8 +161,6 @@ class RegisterView(views.APIView):
                 json_response=False
             )
 
-            del data['password']  # delete field password than they didn't get into the UI from data
-            del data['confirm_password']  # delete field confirm_password that they didn't get the UI from data
             # Send letter to email
             email_body = 'Ваш код для подтверждения: ' + str(
                 code) + '. Его следует использовать, чтобы подтвердить адрес электронной почты при регистрации.' + \
@@ -196,20 +190,15 @@ class RegisterView(views.APIView):
             )
 
 
-@base_view
-@csrf_exempt
-def verify_code(request):
+class VerifyCode(views.APIView):
     """Confirm Email ===> entering the code that came to the mail"""
-    if request.method == 'POST':
+
+    @base_view
+    def post(self, request):
         data = JSONParser().parse(request)
         user = User.objects.filter(code_confirm=int(data['code']))
-        print('data ==> ', data)
-
         if user:
-            user = User.objects.get(code_confirm=int(data['code']))
-            user.confirm_email = True
-            user.code_confirm = None
-            user.save()
+            user.update(confirm_email=True, code_confirm=None)
             return JsonResponse(
                 {
                     'status': 'success',
@@ -227,24 +216,23 @@ def verify_code(request):
             )
 
 
-@base_view
-@csrf_exempt
-def forget_password(request):
+class ForgetPassword(views.APIView):
     """Forget password"""
-    if request.method == 'POST':
+
+    @base_view
+    def post(self, request):
         data = JSONParser().parse(request)
         user = User.objects.filter(email=data['email'])
         if user:
-            user = User.objects.get(email=data['email'])
             code = randint(123456, 987654)
-            user.code_confirm = code
-            user.save()
+            user.update(code_confirm=code)
+
             # Send letter to email
             email_body = 'Ваш код: ' + str(
                 code) + '. Его следует использовать, для восстановление доступа к вашему аккаунту.' + '\n\n' + \
                          f'Если Вы не запрашивали это сообщение, проигнорируйте его.' + '\n\n' + 'С уважением,' + '\n' + 'Команда VA'
             email_subject = 'Восстановление пароля'
-            to_email = user.email
+            to_email = data['email']
             data_send_mail = {
                 'email_body': email_body,
                 'email_subject': email_subject,
@@ -269,18 +257,16 @@ def forget_password(request):
             )
 
 
-@base_view
-@csrf_exempt
-def verify_forget_password(request):
+class VerifyForgetPassword(views.APIView):
     """Forget password ===> entering the code that came to the mail"""
-    if request.method == 'POST':
+
+    @base_view
+    def post(self, request):
         data = JSONParser().parse(request)
         user = User.objects.filter(code_confirm=int(data['code']))
 
         if user:
-            user = User.objects.get(code_confirm=int(data['code']))
-            user.code_confirm = None
-            user.save()
+            user.update(code_confirm=None)
             return JsonResponse(
                 {'status': 'success', 'message': 'Код успешно подтвержден'}, status=200
             )
@@ -290,18 +276,17 @@ def verify_forget_password(request):
             )
 
 
-@base_view
-@csrf_exempt
-def add_password_forget_password(request):
+class AddPasswordForgetPassword(views.APIView):
     """Forget password ===> enter new password"""
-    if request.method == 'POST':
+
+    @base_view
+    def post(self, request):
         data = JSONParser().parse(request)
         user = User.objects.filter(email=data['email'])
+
         if user:
             if data['new_password'] == data['confirm_new_password']:
-                user = User.objects.get(email=data['email'])
-                user.password = data['new_password']
-                user.save()
+                user.update(password=data['new_password'])
                 return JsonResponse(
                     {
                         'status': 'success',
@@ -330,57 +315,49 @@ def add_password_forget_password(request):
 class ChangePasswordView(generics.UpdateAPIView):
     """Auth - Change password ( into account )"""
     serializer_class = ChangePasswordSerializer
-    model = User
     permission_classes = [permissions.IsAuthenticated]
-
-    def get_object(self, queryset=None):
-        obj = self.request.user
-        return obj
+    queryset = User.objects.filter().only('password')
 
     @base_view
-    def update(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        print('self.object ===> ', self.object)
-        serializer = self.get_serializer(data=request.data)
-        print('serializer ===> ', serializer)
+    def put(self, request, *args, **kwargs):
+        data = JSONParser().parse(request)
+        user = User.objects.filter(pk=request.user.pk)
 
-        if request.data['new_password'] != request.data['confirm_new_password']:
-            return JsonResponse(
-                {
-                    'status': 'error',
-                    'message': 'Пароли не совпадают'
-                },
-                status=200
-            )
-
-
-        if serializer.is_valid():
-            # Checking old password
-            if not self.object.check_password(serializer.data.get("old_password")):
+        if check_password(data['old_password'], request.user.password):
+            if data['new_password'] == data['old_password']:
                 return JsonResponse(
                     {
                         'status': 'error',
-                        "message": "Неправильный пароль"
+                        'message': 'Новый пароль не должен совпадает со старым паролем'
                     },
                     status=400
                 )
-            # set_password also hashes the password that the user will receive
-            self.object.set_password(serializer.data.get("new_password"))
-            self.object.save()
+            else:
+                if data['new_password'] == data['confirm_new_password']:
+                    user.update(password=make_password(data['new_password']))
+                    return JsonResponse(
+                        {
+                            'status': 'success',
+                            'message': 'Пароль успешно изменен'
+                        },
+                        status=200
+                    )
+                else:
+                    return JsonResponse(
+                        {
+                            'status': 'error',
+                            'message': 'Пароли не совпадают. Проверьте правильность введеных данных'
+                        },
+                        status=400
+                    )
+        else:
             return JsonResponse(
                 {
-                    'status': 'success',
-                    'message': 'Пароль был успешно изменен'
+                    'status': 'error',
+                    'message': 'Вы ввели неправильный текущий пароль'
                 },
-                status=200
+                status=400
             )
-        return JsonResponse(
-            {
-                'status': 'error',
-                'message': serializer.error
-            },
-            status=400
-        )
 
 
 class GetDataAboutMe(generics.ListAPIView):
@@ -390,7 +367,6 @@ class GetDataAboutMe(generics.ListAPIView):
 
     @base_view
     def get_queryset(self):
-        print('self.request.user ==> ', self.request.user)
-        print('self.request.user.username ==> ', self.request.user.username)
-        user = User.objects.filter(username=self.request.user.username)
-        return user
+        return User.objects.filter(pk=self.request.user.pk) \
+            .only('id', 'username', 'first_name', 'last_name', 'email', 'city', 'birth_day', 'sex', 'photo',
+                  'confirm_email', 'confirm_account')

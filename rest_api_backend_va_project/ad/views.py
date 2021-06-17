@@ -1,9 +1,8 @@
 from rest_framework import generics, permissions, status
-from rest_framework.exceptions import ValidationError
 from django.http import JsonResponse
 
 from .models import Ad
-from .serializers import CreateAdSerializer, AdSerializer, UpdateAdSerializer
+from .serializers import CreateAdSerializer, AdSerializer, UpdateAdSerializer, GetMyDataSerializer
 from utils.send_letter_on_email.send_letter_on_email import Util
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
@@ -13,15 +12,19 @@ from utils.exception_handling.exception_views import base_view
 class AdListView(generics.ListAPIView):
     """Get all ads (GET)"""
     serializer_class = AdSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    queryset = Ad.objects.all()
+    # permission_classes = [permissions.IsAuthenticated]
+    queryset = Ad.objects.all()\
+        .defer("is_published", "create_ad", "author__password")\
+        .select_related('author')
 
 
 class AdRetrieveAPIView(generics.RetrieveAPIView):
     """Getting ad by param (GET)"""
     serializer_class = AdSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    queryset = Ad.objects.all()
+    # permission_classes = [permissions.IsAuthenticated]
+    queryset = Ad.objects.all()\
+        .defer("is_published", "create_ad", "author__password")\
+        .select_related('author')
 
 
 # Создание ad (post)
@@ -50,7 +53,7 @@ class AdRetrieveAPIView(generics.RetrieveAPIView):
 
 class AdCreateView(APIView):
     """Create ad (post)"""
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
 
     @base_view
     def post(self, request):
@@ -102,14 +105,14 @@ class AdCreateView(APIView):
 class AdUpdateView(generics.UpdateAPIView):
     """Update ad"""
     serializer_class = UpdateAdSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
     queryset = Ad.objects.all()
 
 
 class AdDestroyAPIView(generics.DestroyAPIView):
     """Delete ad"""
     serializer_class = CreateAdSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    # permission_classes = [permissions.IsAuthenticated]
 
     @base_view
     def get_queryset(self):
@@ -134,9 +137,11 @@ class AdDestroyAPIView(generics.DestroyAPIView):
 
 class MyAdsListAPIView(generics.ListAPIView):
     """Get my ads"""
-    serializer_class = AdSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    serializer_class = GetMyDataSerializer
+    # permission_classes = [permissions.IsAuthenticated]
 
     @base_view
     def get_queryset(self):
-        return Ad.objects.filter(author=self.request.user)
+        return Ad.objects\
+            .defer("is_published", "create_ad", "author__password")\
+            .filter(author__pk=7)

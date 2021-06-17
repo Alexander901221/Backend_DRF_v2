@@ -44,7 +44,8 @@ class GetMeSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'id', 'username', 'first_name', 'sex',
-            'birth_day', 'city', 'email', 'photo'
+            'birth_day', 'city', 'email', 'photo',
+            'confirm_email', 'confirm_account'
         )
 
 

@@ -16,7 +16,6 @@ def optimization_photo(user: User, message_success: str, message_error: str, jso
     """
     try:
         path = 'images/' + str(user.photo)  # path uploaded photo
-        print('path ==> ', path)
 
         photo_optimization = str(user.photo).split('.')
         photo_path = '/'.join(photo_optimization[0].split('/')[0:-1]) + '/' + f'{str(user.username)}'
