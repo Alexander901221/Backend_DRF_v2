@@ -18,6 +18,7 @@ urlpatterns = [
     # Auth
     # Registration
     path('auth/signup', RegisterView.as_view()),  # Оптимизированно частично
+
     # Login
     path('auth/verify-code', VerifyCode.as_view(), name='verify-code'),  # Оптимизированно
 

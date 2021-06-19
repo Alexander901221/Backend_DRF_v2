@@ -143,7 +143,7 @@ class AdDestroyAPIView(generics.DestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         param = kwargs['pk']
 
-        ad = Ad.objects.filter(Q(pk=param) | Q(author__pk=request.user.pk))
+        ad = Ad.objects.filter(Q(pk=param) & Q(author__pk=request.user.pk))
 
         if ad.exists():
             ad.delete()

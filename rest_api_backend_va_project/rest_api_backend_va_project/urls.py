@@ -21,6 +21,12 @@ urlpatterns = [
     # Ad
     path('api/ad/', include('ad.urls')),
 
+    # Bid
+    path('api/bid/', include('bid.urls')),
+
+    # Participant
+    path('api/participant', include('participant.urls')),
+
     # Token
     path('api/token/', TokenObtainPairView.as_view()),  # для авторизации {username: 'alex123', password: '123qwe'}
     path('api/token/refresh/', TokenRefreshView.as_view()),

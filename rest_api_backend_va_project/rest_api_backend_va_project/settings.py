@@ -47,6 +47,8 @@ INSTALLED_APPS = [
     'ad',
     'debug_toolbar',
     'django_extensions',  # pip install Werkzeug  and  pip install django-extensions
+    'bid',
+    'participant',
 ]
 
 MIDDLEWARE = [

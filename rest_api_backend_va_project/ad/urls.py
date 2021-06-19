@@ -2,21 +2,21 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
-    # Получение всех объявлений
+    # Get all ads
     path('all', AdListView.as_view()),  # Оптимизированно
 
-    # Создание объявления
+    # Create ad
     path('create', AdCreateView.as_view()),  # Оптимизированно
 
-    # Изменение объявления
+    # Change ad
     path('update/<int:pk>/', AdUpdateView.as_view()),  # Оптимизированно
 
-    # Получение объявления по pk
+    # Get ad for pk
     path('ad/<int:pk>/', AdRetrieveAPIView.as_view()),  # Оптимизированно
 
-    # Удаление объявления по pk
+    # Delete ad for pk
     path('remove/<int:pk>', AdDestroyAPIView.as_view()),  # Оптимизированно
 
-    # Получение всех моих объявление
+    # Get all my ads
     path('my_ads/', MyAdsListAPIView.as_view())  # Оптимизированно
 ]
