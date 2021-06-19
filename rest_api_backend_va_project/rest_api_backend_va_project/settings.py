@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 from datetime import timedelta
+from loguru import logger
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -230,3 +231,18 @@ PASSWORD_HASHERS = [
     'django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher',
     'django.contrib.auth.hashers.Argon2PasswordHasher',
 ]
+
+# Data about ADMIN
+USERNAME = 'alexnovpac'
+EMAIL = 'alexnovpac@gmail.com'
+PASSWORD = '2497Sasha'
+
+# Logging
+logger.add(
+    'logging/debug.json',
+    format="{time} {level} {message}",
+    level="DEBUG",
+    rotation="10 KB",
+    compression="zip",
+    serialize=True
+)

@@ -1,4 +1,3 @@
-import bcrypt
 from rest_framework import generics, permissions, views, status
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.parsers import JSONParser
@@ -14,26 +13,33 @@ from .models import User
 from utils.send_letter_on_email.send_letter_on_email import Util
 from utils.optimization_photo.optimization_photo import optimization_photo
 from utils.format_images.format_images import check_uploaded_image_format
-from utils.exception_handling.exception_views import base_view
 from django.contrib.auth.hashers import check_password, make_password
+
+from loguru import logger
 
 
 class UserListView(generics.ListAPIView):
     """Get all users (GET)"""
     serializer_class = UserSerializers
     permission_classes = [permissions.IsAdminUser]
-    queryset = User.objects.all() \
-        .only('id', 'username', 'first_name', 'last_name', 'email', 'city', 'birth_day', 'sex', 'photo',
-              'confirm_email', 'confirm_account')
+
+    def get_queryset(self):
+        return User.objects.all().only(
+            'id', 'username', 'first_name', 'last_name', 'email', 'city',
+            'birth_day', 'sex', 'photo', 'confirm_email', 'confirm_account'
+        )
 
 
 class UserRetrieveAPIView(generics.RetrieveAPIView):
     """Getting user by param (GET)"""
     serializer_class = UserSerializers
     permission_classes = [permissions.IsAdminUser]
-    queryset = User.objects.all() \
-        .only('id', 'username', 'first_name', 'last_name', 'email', 'city', 'birth_day', 'sex', 'photo',
-              'confirm_email', 'confirm_account')
+
+    def get_queryset(self):
+        return User.objects.all().only(
+            'id', 'username', 'first_name', 'last_name', 'email', 'city',
+            'birth_day', 'sex', 'photo', 'confirm_email', 'confirm_account'
+        )
 
 
 class UserUpdateData(generics.UpdateAPIView):
@@ -43,7 +49,7 @@ class UserUpdateData(generics.UpdateAPIView):
     parser_classes = (MultiPartParser, FormParser)
     queryset = User.objects.all()
 
-    @base_view
+    @logger.catch
     def put(self, request, *args, **kwargs):
         try:
             data = request.data
@@ -113,7 +119,7 @@ class RegisterView(views.APIView):
     """Auth - register"""
     parser_classes = (MultiPartParser, FormParser,)
 
-    @base_view
+    @logger.catch
     def post(self, request):
         try:
             data = request.data
@@ -193,7 +199,7 @@ class RegisterView(views.APIView):
 class VerifyCode(views.APIView):
     """Confirm Email ===> entering the code that came to the mail"""
 
-    @base_view
+    @logger.catch
     def post(self, request):
         data = JSONParser().parse(request)
         user = User.objects.filter(code_confirm=int(data['code']))
@@ -219,7 +225,7 @@ class VerifyCode(views.APIView):
 class ForgetPassword(views.APIView):
     """Forget password"""
 
-    @base_view
+    @logger.catch
     def post(self, request):
         data = JSONParser().parse(request)
         user = User.objects.filter(email=data['email'])
@@ -260,7 +266,7 @@ class ForgetPassword(views.APIView):
 class VerifyForgetPassword(views.APIView):
     """Forget password ===> entering the code that came to the mail"""
 
-    @base_view
+    @logger.catch
     def post(self, request):
         data = JSONParser().parse(request)
         user = User.objects.filter(code_confirm=int(data['code']))
@@ -279,7 +285,7 @@ class VerifyForgetPassword(views.APIView):
 class AddPasswordForgetPassword(views.APIView):
     """Forget password ===> enter new password"""
 
-    @base_view
+    @logger.catch
     def post(self, request):
         data = JSONParser().parse(request)
         user = User.objects.filter(email=data['email'])
@@ -318,7 +324,7 @@ class ChangePasswordView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     queryset = User.objects.filter().only('password')
 
-    @base_view
+    @logger.catch
     def put(self, request, *args, **kwargs):
         data = JSONParser().parse(request)
         user = User.objects.filter(pk=request.user.pk)
@@ -365,7 +371,7 @@ class GetDataAboutMe(generics.ListAPIView):
     serializer_class = GetMeSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    @base_view
+    @logger.catch
     def get_queryset(self):
         return User.objects.filter(pk=self.request.user.pk) \
             .only('id', 'username', 'first_name', 'last_name', 'email', 'city', 'birth_day', 'sex', 'photo',

@@ -7,32 +7,34 @@ from .serializers import CreateAdSerializer, AdSerializer, UpdateAdSerializer, G
 from utils.send_letter_on_email.send_letter_on_email import Util
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
-from utils.exception_handling.exception_views import base_view
+from loguru import logger
 
 
 class AdListView(generics.ListAPIView):
     """Get all ads (GET)"""
     serializer_class = AdSerializer
     permission_classes = [permissions.IsAuthenticated]
-    queryset = Ad.objects.all() \
-        .defer("is_published", "create_ad", "author__password") \
-        .select_related('author')
+
+    @logger.catch
+    def get_queryset(self):
+        return Ad.objects.all().defer("is_published", "create_ad", "author__password").select_related('author')
 
 
 class AdRetrieveAPIView(generics.RetrieveAPIView):
     """Getting ad by param (GET)"""
     serializer_class = AdSerializer
     permission_classes = [permissions.IsAuthenticated]
-    queryset = Ad.objects.all() \
-        .defer("is_published", "create_ad", "author__password") \
-        .select_related('author')
+
+    @logger.catch
+    def get_queryset(self):
+        return Ad.objects.all().defer("is_published", "create_ad", "author__password").select_related('author')
 
 
 class AdCreateView(APIView):
     """Create ad (post)"""
     permission_classes = [permissions.IsAuthenticated]
 
-    @base_view
+    @logger.catch
     def post(self, request):
         data = request.data
         user = request.user
@@ -87,6 +89,7 @@ class AdUpdateView(generics.UpdateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     queryset = Ad.objects.all().select_related('author')
 
+    @logger.catch
     def put(self, request, *args, **kwargs):
         data = JSONParser().parse(request)
         param = kwargs['pk']
@@ -136,7 +139,7 @@ class AdDestroyAPIView(generics.DestroyAPIView):
 
     permission_classes = [permissions.IsAuthenticated]
 
-    @base_view
+    @logger.catch
     def destroy(self, request, *args, **kwargs):
         param = kwargs['pk']
 
@@ -168,7 +171,7 @@ class MyAdsListAPIView(generics.ListAPIView):
 
     permission_classes = [permissions.IsAuthenticated]
 
-    @base_view
+    @logger.catch
     def get_queryset(self):
         return Ad.objects \
             .defer("is_published", "create_ad", "author__password") \
