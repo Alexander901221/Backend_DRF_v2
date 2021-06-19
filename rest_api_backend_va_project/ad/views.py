@@ -1,3 +1,4 @@
+from django.db.models import Q
 from rest_framework import generics, permissions, status
 from django.http import JsonResponse
 
@@ -12,55 +13,31 @@ from utils.exception_handling.exception_views import base_view
 class AdListView(generics.ListAPIView):
     """Get all ads (GET)"""
     serializer_class = AdSerializer
-    # permission_classes = [permissions.IsAuthenticated]
-    queryset = Ad.objects.all()\
-        .defer("is_published", "create_ad", "author__password")\
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Ad.objects.all() \
+        .defer("is_published", "create_ad", "author__password") \
         .select_related('author')
 
 
 class AdRetrieveAPIView(generics.RetrieveAPIView):
     """Getting ad by param (GET)"""
     serializer_class = AdSerializer
-    # permission_classes = [permissions.IsAuthenticated]
-    queryset = Ad.objects.all()\
-        .defer("is_published", "create_ad", "author__password")\
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Ad.objects.all() \
+        .defer("is_published", "create_ad", "author__password") \
         .select_related('author')
 
 
-# Создание ad (post)
-# class AdCreateView(generics.CreateAPIView):
-#     serializer_class = CreateAdSerializer
-#     permission_classes = [permissions.IsAuthenticated]
-#     queryset = Ad.objects.all()
-#
-#     def perform_create(self, serializer):
-#         ad = Ad.objects.filter(author=self.request.user)
-#         if ad:
-#             raise ValidationError('У вас уже есть созданное объявления')
-#         else:
-#             user = self.request.user
-#             # Отправка письма на почту о уведомление
-#             email_body = 'Привет ' + user.username + '. Ваше объявление отправлено на модерацию. Если с ним все будет хорошо, оно будет опубликовано и в ближайшее время и появится на карте. Ответы будут приходить на электронную почту.'
-#             email_subject = 'Создания объявления'
-#             to_email = user.email
-#             data_send_mail = {
-#                 'email_body': email_body,
-#                 'email_subject': email_subject,
-#                 'to_email': to_email
-#             }
-#             Util.send_email(data=data_send_mail)
-#             serializer.save(author=self.request.user)
-
 class AdCreateView(APIView):
     """Create ad (post)"""
-    # permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.IsAuthenticated]
 
     @base_view
     def post(self, request):
-        data = JSONParser().parse(request)
+        data = request.data
         user = request.user
 
-        author_ad = Ad.objects.filter(author=request.user)
+        author_ad = Ad.objects.filter(author__pk=user.pk)
         if author_ad:
             return JsonResponse(
                 {
@@ -69,17 +46,18 @@ class AdCreateView(APIView):
                 },
                 status=status.HTTP_400_BAD_REQUEST
             )
-        print('author_ad ==> ', author_ad)
-        Ad.objects.create(
+
+        author_ad.create(
             title=data['title'],
-            author=request.user,
+            author=user,
             city=data['city'],
             number_of_person=data['number_of_person'],
             number_of_girls=data['number_of_girls'],
             number_of_boys=data['number_of_boys'],
             party_date=data['party_date']
         )
-        # Sending a letter to the mail about notification
+
+        # Sending a letter to the mail about notification (нужно ли отправка на почту???) Может вернут
         email_body = 'Привет ' + user.username + '. Ваше объявление отправлено на модерацию. ' \
                                                  'Если с ним все будет хорошо, оно будет опубликовано и ' \
                                                  'в ближайшее время и появится на карте. ' \
@@ -96,7 +74,8 @@ class AdCreateView(APIView):
         return JsonResponse(
             {
                 'status': "success",
-                'message': "Объявление успешно созданно"
+                'message': "Объявление успешно созданно и отправлено на модерацию. "
+                           "Если с ним все будет хорошо, оно будет опубликовано и появится на карте."
             },
             status=status.HTTP_200_OK
         )
@@ -105,43 +84,92 @@ class AdCreateView(APIView):
 class AdUpdateView(generics.UpdateAPIView):
     """Update ad"""
     serializer_class = UpdateAdSerializer
-    # permission_classes = [permissions.IsAuthenticated]
-    queryset = Ad.objects.all()
+    permission_classes = [permissions.IsAuthenticated]
+    queryset = Ad.objects.all().select_related('author')
+
+    def put(self, request, *args, **kwargs):
+        data = JSONParser().parse(request)
+        param = kwargs['pk']
+        ad = Ad.objects.filter(Q(pk=param) | Q(author__pk=request.user.pk))
+
+        if ad.exists():
+            ad.update(
+                title=data['title'],
+                city=data['city'],
+                geolocation=data['geolocation'],
+                number_of_person=data['number_of_person'],
+                number_of_girls=data['number_of_girls'],
+                number_of_boys=data['number_of_boys'],
+                party_date=data['party_date'],
+                is_published=False
+            )
+            return JsonResponse(
+                {
+                    'status': 'success',
+                    'message': 'Объявление успешно обновленно и отправлено на модерацию. '
+                               'Если с ним все будет хорошо, оно будет опубликовано и появится на карте.',
+                    'data': {
+                        'title': data['title'],
+                        'city': data['city'],
+                        'geolocation': data['geolocation'],
+                        'number_of_person': data['number_of_person'],
+                        'number_of_girls': data['number_of_girls'],
+                        'number_of_boys': data['number_of_boys'],
+                        'party_date': data['party_date']
+                    }
+                },
+                status=status.HTTP_200_OK
+            )
+        else:
+            return JsonResponse(
+                {
+                    'status': 'error',
+                    'message': 'Данного объявления не существует'
+                },
+                status=status.HTTP_200_OK
+            )
 
 
 class AdDestroyAPIView(generics.DestroyAPIView):
     """Delete ad"""
     serializer_class = CreateAdSerializer
-    # permission_classes = [permissions.IsAuthenticated]
 
-    @base_view
-    def get_queryset(self):
-        param = self.kwargs['pk']
-        queryset = Ad.objects.filter(pk=param, author=self.request.user)
-        return queryset
+    permission_classes = [permissions.IsAuthenticated]
 
     @base_view
     def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance:
-            instance.delete()
+        param = kwargs['pk']
+
+        ad = Ad.objects.filter(Q(pk=param) | Q(author__pk=request.user.pk))
+
+        if ad.exists():
+            ad.delete()
+
             return JsonResponse(
                 {
                     'status': 'success',
-                    'message': 'Удаление прошло успешно'
+                    'message': 'Ваше объявление успешно удаленно'
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_200_OK
             )
-        self.perform_destroy(instance)
+        else:
+            return JsonResponse(
+                {
+                    'status': 'error',
+                    'message': 'Данного объявления не существует'
+                },
+                status=status.HTTP_200_OK
+            )
 
 
 class MyAdsListAPIView(generics.ListAPIView):
     """Get my ads"""
     serializer_class = GetMyDataSerializer
-    # permission_classes = [permissions.IsAuthenticated]
+
+    permission_classes = [permissions.IsAuthenticated]
 
     @base_view
     def get_queryset(self):
-        return Ad.objects\
-            .defer("is_published", "create_ad", "author__password")\
+        return Ad.objects \
+            .defer("is_published", "create_ad", "author__password") \
             .filter(author__pk=7)
