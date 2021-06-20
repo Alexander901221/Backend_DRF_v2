@@ -27,3 +27,13 @@ class CreateBidSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'author', 'number_of_person', 'number_of_girls', 'number_of_boys', 'photos', 'create_ad'
         )
+
+
+class MyBidsSerializer(serializers.ModelSerializer):
+    author = UserSerializers(read_only=True)
+
+    class Meta:
+        model = Bid
+        fields = (
+            'id', 'author', 'number_of_person', 'number_of_girls', 'number_of_boys', 'photos', 'create_ad'
+        )

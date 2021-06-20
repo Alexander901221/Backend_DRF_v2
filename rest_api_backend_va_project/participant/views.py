@@ -1,4 +1,4 @@
-from rest_framework import generics
+from rest_framework import generics, status
 from rest_framework.exceptions import ValidationError
 from django.http import JsonResponse
 
@@ -26,31 +26,13 @@ class ParticipantRetrieveAPIView(generics.RetrieveAPIView):
     queryset = Participant.objects.all()
 
 
-# Создание participant (post)
-# class ParticipantCreateView(generics.CreateAPIView):
-#     serializer_class = ParticipantSerializer
-#     permission_classes = []
-#     queryset = Participant.objects.all()
-#
-#     def perform_create(self, serializer):
-#         id_ad = self.request.data['id_ad']
-#         ad = Ad.objects.get(pk=id_ad)
-#         participant = Participant.objects.filter(user=self.request.user, ad=ad)
-#         if participant:
-#             raise ValidationError('Данный пользователь уже есть у вас в участниках')
-#         if ad:
-#             serializer.save(user=self.request.user, ad=ad)
-#         else:
-#             raise ValidationError('Вы уже подали заявку. Дождитесь ответа')
-
-
 # Получение моих участников
 class MyParticipantsListAPIView(generics.ListAPIView):
     serializer_class = ParticipantSerializer
     permission_classes = []
 
     def get_queryset(self):
-        return Participant.objects.filter(ad__author=self.request.user)
+        return Participant.objects.filter(ad__author__pk=self.request.user.pk).only('ad__author')
 
 
 # добавление участника
@@ -64,7 +46,13 @@ class ParticipantCreateView(generics.CreateAPIView):
         my_ad = Ad.objects.get(author=self.request.user)  # проверка на существования объявления
         participant = Participant.objects.filter(user__pk=user_id)
         if participant:
-            raise ValidationError('Данный пользователь уже находится в вашем списке участников')
+            return JsonResponse(
+                {
+                    'status': "error",
+                    'message': "Данный пользователь уже находится в вашем списке участников"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
         if my_ad:
             user = User.objects.get(pk=user_id)
             check_user_bid = Bid.objects.filter(author__pk=user_id, ad__author=self.request.user)
@@ -79,9 +67,21 @@ class ParticipantCreateView(generics.CreateAPIView):
                 #
                 #
             else:
-                raise ValidationError('Данного user нет в ваших заявках')
+                return JsonResponse(
+                    {
+                        'status': "error",
+                        'message': "Данного user нет в ваших заявках"
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
         else:
-            raise ValidationError('У вас не созданно объявление')
+            return JsonResponse(
+                {
+                    'status': "error",
+                    'message': "У вас не созданного объявление"
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
 
 
 # Удаление участника

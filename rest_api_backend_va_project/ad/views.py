@@ -52,6 +52,7 @@ class AdCreateView(APIView):
         author_ad.create(
             title=data['title'],
             author=user,
+            geolocation=data['geolocation'],
             city=data['city'],
             number_of_person=data['number_of_person'],
             number_of_girls=data['number_of_girls'],
@@ -59,19 +60,7 @@ class AdCreateView(APIView):
             party_date=data['party_date']
         )
 
-        # Sending a letter to the mail about notification (нужно ли отправка на почту???) Может вернут
-        email_body = 'Привет ' + user.username + '. Ваше объявление отправлено на модерацию. ' \
-                                                 'Если с ним все будет хорошо, оно будет опубликовано и ' \
-                                                 'в ближайшее время и появится на карте. ' \
-                                                 'Ответы будут приходить на электронную почту.'
-        email_subject = 'Создания объявления'
-        to_email = user.email
-        data_send_mail = {
-            'email_body': email_body,
-            'email_subject': email_subject,
-            'to_email': to_email
-        }
-        Util.send_email(data=data_send_mail)
+        # Websocket notification
 
         return JsonResponse(
             {
@@ -174,5 +163,5 @@ class MyAdsListAPIView(generics.ListAPIView):
     @logger.catch
     def get_queryset(self):
         return Ad.objects \
-            .defer("is_published", "create_ad", "author__password") \
-            .filter(author__pk=7)
+            .defer("create_ad", "author__password") \
+            .filter(author__pk=self.request.user.pk)

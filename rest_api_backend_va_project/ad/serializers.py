@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import Ad
-from user.serializers import UserSerializers, GetMeSerializer
-from .models import User
+from user.serializers import UserSerializers
+
 
 class CreateAdSerializer(serializers.ModelSerializer):
     author = UserSerializers(read_only=True)
@@ -45,7 +45,7 @@ class GetMyDataSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'title', 'author', 'city', 'geolocation',
             'number_of_person', 'number_of_girls', 'number_of_boys',
-            'party_date', 'participants',
-            # 'is_published', 'create_ad'
+            'party_date', 'participants', 'is_published'
+            # 'create_ad'
         )
         read_only_fields = fields

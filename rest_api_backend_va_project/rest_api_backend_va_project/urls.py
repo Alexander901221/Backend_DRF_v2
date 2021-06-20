@@ -25,7 +25,7 @@ urlpatterns = [
     path('api/bid/', include('bid.urls')),
 
     # Participant
-    path('api/participant', include('participant.urls')),
+    path('api/participant/', include('participant.urls')),
 
     # Token
     path('api/token/', TokenObtainPairView.as_view()),  # для авторизации {username: 'alex123', password: '123qwe'}

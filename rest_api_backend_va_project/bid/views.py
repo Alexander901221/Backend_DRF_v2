@@ -1,56 +1,31 @@
 from rest_framework import generics, status, views
-from rest_framework.exceptions import ValidationError
 from django.http import JsonResponse
 from django.db.models import Q
-
+from rest_framework.views import APIView
 from .models import Bid
-from .serializers import BidSerializer, CreateBidSerializer
+from .serializers import BidSerializer, CreateBidSerializer, MyBidsSerializer
 from ad.models import Ad
 from participant.models import Participant
 
 
-# Получение всех bids (GET)
-class BidListView(generics.ListAPIView):
-    serializer_class = BidSerializer
-    # permission_classes = []
-    queryset = Bid.objects.all().select_related('author', 'ad__author', 'ad')
-
-
-# Получение bid по param (GET)
 class BidRetrieveAPIView(generics.RetrieveAPIView):
+    """Get bid for pk"""
     serializer_class = BidSerializer
     # permission_classes = []
     queryset = Bid.objects.all().select_related('author', 'ad__author', 'ad')
-
-
-# Создание bid (post)
-# class BidCreateView(generics.CreateAPIView):
-#     serializer_class = BidSerializer
-#     # permission_classes = []
-#     # queryset = Bid.objects.all()
-#
-#     def perform_create(self, serializer):
-#         id_ad = self.request.data['id_ad']
-#         ad = Ad.objects.get(pk=id_ad)
-#         bid = Bid.objects.filter(author=self.request.user, ad__pk=id_ad)
-#         if bid:
-#             raise ValidationError('Вы уже подали заявку. Дождитесь ответа')
-#         else:
-#             serializer.save(author=self.request.user, ad=ad)
 
 
 class BidCreateView(views.APIView):
+    """Create bid"""
     serializer_class = CreateBidSerializer
-
     # permission_classes = []
 
     def post(self, request, *args, **kwargs):
         data = self.request.data
 
         ad = Ad.objects.get(pk=data['id_ad'])
-        participant = Participant.objects.filter(Q(user=self.request.user) & Q(ad__pk=data['id_ad']))
-
-        check_bid = Bid.objects.filter(Q(author__pk=self.request.user.pk) & Q(ad__pk=data['id_ad']))
+        participant = Participant.objects.filter(Q(user=self.request.user) & Q(ad__pk=data['id_ad'])).values('id')
+        check_bid = Bid.objects.filter(Q(author__pk=self.request.user.pk) & Q(ad__pk=data['id_ad'])).values('id')
 
         if check_bid or participant:
             return JsonResponse(
@@ -79,32 +54,38 @@ class BidCreateView(views.APIView):
         )
 
 
-# Обновление bid (put)
-class BidUpdateView(generics.UpdateAPIView):
-    serializer_class = BidSerializer
-    # permission_classes = []
-    queryset = Bid.objects.all()
+class MyBidsRetrieveAPIView(APIView):
+    """Get all my bids for ad"""
+    serializer_class = MyBidsSerializer
 
-
-# Получение всех моих заявок по моему объявлению
-class MyBidsListAPIView(generics.ListAPIView):
-    serializer_class = BidSerializer
-
-    # permission_classes = []
-
-    def get_queryset(self):
+    def get(self, request, *args, **kwargs):
+        id_ad = self.kwargs['pk']
         bids = Bid.objects \
-            .filter(ad__author__pk=self.request.user.pk) \
-            .select_related('author', 'ad__author', 'ad')
+            .filter(Q(ad__author__pk=self.request.user.pk) & Q(ad__pk=id_ad)) \
+            .select_related('author', 'ad__author', 'ad') \
+            .values('author', 'number_of_person', 'number_of_girls', 'number_of_boys', 'photos', 'create_ad')
 
         if bids:
-            return bids
+            return JsonResponse(
+                {
+                    'status': 'success',
+                    'message': 'Ваши заявки успешно получены',
+                    'data': list(bids)
+                },
+                status=status.HTTP_200_OK
+            )
         else:
-            raise ValidationError('У вас пока нет заявок')
+            return JsonResponse(
+                {
+                    'status': 'error',
+                    'message': 'У вас пока нет заявок'
+                },
+                status=200
+            )
 
 
-# Отказ заявке
 class BidRejected(generics.DestroyAPIView):
+    """rejected bid"""
     serializer_class = BidSerializer
     # permission_classes = []
     queryset = Bid.objects.all()
@@ -117,6 +98,18 @@ class BidRejected(generics.DestroyAPIView):
             """
                 Уведомление user о том, что его заявку отклонили ( Websocket )
             """
-            return JsonResponse({'status': 'success', 'message': 'Удаление прошло успешно'}, status=200)
+            return JsonResponse(
+                {
+                    'status': 'success',
+                    'message': 'Данная заявка успешно отклонена'
+                 },
+                status=200
+            )
         else:
-            raise ValidationError('Данной заявки не существует.')
+            return JsonResponse(
+                {
+                    'status': 'error',
+                    'message': 'Данной заявки не существует'
+                },
+                status=400
+            )
