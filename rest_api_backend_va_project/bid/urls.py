@@ -2,9 +2,9 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
-
     # Get bid for pk
-    path('bid/<int:pk>/', BidRetrieveAPIView.as_view()),  # Оптимизированно
+    path('<int:ad_pk>/<int:bid_pk>/', BidRetrieveAPIView.as_view()),  # Оптимизированно
+    # 'bid/1/10'
 
     # Create bid
     path('create', BidCreateView.as_view()),  # Оптимизированно

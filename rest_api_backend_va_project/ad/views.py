@@ -4,7 +4,6 @@ from django.http import JsonResponse
 
 from .models import Ad
 from .serializers import CreateAdSerializer, AdSerializer, UpdateAdSerializer, GetMyDataSerializer
-from utils.send_letter_on_email.send_letter_on_email import Util
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
 from loguru import logger
@@ -39,7 +38,7 @@ class AdCreateView(APIView):
         data = request.data
         user = request.user
 
-        author_ad = Ad.objects.filter(author__pk=user.pk)
+        author_ad = Ad.objects.filter(author__pk=user.pk).values('pk')
         if author_ad:
             return JsonResponse(
                 {
@@ -60,7 +59,7 @@ class AdCreateView(APIView):
             party_date=data['party_date']
         )
 
-        # Websocket notification
+        # WebSocket notification ("Объявление успешно созданно")
 
         return JsonResponse(
             {

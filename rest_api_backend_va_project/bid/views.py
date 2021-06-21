@@ -1,6 +1,6 @@
 from rest_framework import generics, status, views
 from django.http import JsonResponse
-from django.db.models import Q
+from django.db.models import Q, F
 from rest_framework.views import APIView
 from .models import Bid
 from .serializers import BidSerializer, CreateBidSerializer, MyBidsSerializer
@@ -8,11 +8,30 @@ from ad.models import Ad
 from participant.models import Participant
 
 
-class BidRetrieveAPIView(generics.RetrieveAPIView):
+class BidRetrieveAPIView(APIView):
     """Get bid for pk"""
     serializer_class = BidSerializer
     # permission_classes = []
-    queryset = Bid.objects.all().select_related('author', 'ad__author', 'ad')
+
+    def get(self, request, *args, **kwargs):
+        ad_id = self.kwargs['ad_pk']
+        bid_id = self.kwargs['bid_pk']
+
+        bid = Bid.objects\
+            .filter(Q(ad__author__pk=request.user.pk) & Q(ad__pk=ad_id) & Q(pk=bid_id)) \
+            .annotate(username=F('author__username'), photo=F('author__photo'), user_id=F('author__id')) \
+            .values(
+                'id', 'user_id', 'username', 'photo', 'photos', 'create_ad'
+            )
+
+        return JsonResponse(
+            {
+                'status': "success",
+                'message': "Ваша заявка успешно полученна",
+                'data': list(bid)
+            },
+            status=status.HTTP_200_OK
+        )
 
 
 class BidCreateView(views.APIView):
@@ -24,8 +43,8 @@ class BidCreateView(views.APIView):
         data = self.request.data
 
         ad = Ad.objects.get(pk=data['id_ad'])
-        participant = Participant.objects.filter(Q(user=self.request.user) & Q(ad__pk=data['id_ad'])).values('id')
-        check_bid = Bid.objects.filter(Q(author__pk=self.request.user.pk) & Q(ad__pk=data['id_ad'])).values('id')
+        participant = Participant.objects.filter(Q(user=self.request.user) & Q(ad__pk=data['id_ad'])).values('pk')
+        check_bid = Bid.objects.filter(Q(author__pk=self.request.user.pk) & Q(ad__pk=data['id_ad'])).values('pk')
 
         if check_bid or participant:
             return JsonResponse(
@@ -36,6 +55,7 @@ class BidCreateView(views.APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         else:
+            pass
             check_bid.create(
                 author=self.request.user,
                 ad=ad,
@@ -63,7 +83,8 @@ class MyBidsRetrieveAPIView(APIView):
         bids = Bid.objects \
             .filter(Q(ad__author__pk=self.request.user.pk) & Q(ad__pk=id_ad)) \
             .select_related('author', 'ad__author', 'ad') \
-            .values('author', 'number_of_person', 'number_of_girls', 'number_of_boys', 'photos', 'create_ad')
+            .annotate(username=F('author__username'), photo=F('author__photo'))\
+            .values('id', 'username', 'photo')
 
         if bids:
             return JsonResponse(
