@@ -1,10 +1,10 @@
 from rest_framework import generics, status
 from rest_framework.exceptions import ValidationError
 from django.http import JsonResponse
-
+from rest_framework.views import APIView
 from .serializers import ParticipantSerializer
 from ad.models import Ad
-
+from django.db.models import Q
 from bid.models import Bid
 from user.models import User
 
@@ -27,12 +27,34 @@ class ParticipantRetrieveAPIView(generics.RetrieveAPIView):
 
 
 # Получение моих участников
-class MyParticipantsListAPIView(generics.ListAPIView):
+# class MyParticipantsListAPIView(generics.ListAPIView):
+#     serializer_class = ParticipantSerializer
+#     permission_classes = []
+#
+#     def get_queryset(self):
+#         return Participant.objects.filter(ad__author__pk=self.request.user.pk).only('ad__author')
+
+class MyParticipantsListAPIView(APIView):
     serializer_class = ParticipantSerializer
     permission_classes = []
 
     def get_queryset(self):
         return Participant.objects.filter(ad__author__pk=self.request.user.pk).only('ad__author')
+
+    def get(self, request, *args, **kwargs):
+        ad_id = self.kwargs['pk']
+
+        participant = Participant.objects.filtrer(Q(ad__author__pk=self.request.user.pk) & Q(ad__pk=ad_id))
+        print('participant --> ', participant)
+
+        return JsonResponse(
+            {
+                'status': "success",
+                'message': "Ваша заявка успешно полученна",
+                # 'data': list(bid)
+            },
+            status=status.HTTP_200_OK
+        )
 
 
 # добавление участника
