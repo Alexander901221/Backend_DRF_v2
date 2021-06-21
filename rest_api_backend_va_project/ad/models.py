@@ -3,9 +3,6 @@ from django.db import models
 from user.models import User
 
 from utils.choices.choices import CITIES
-# Moderation check notification ( Signals )
-from django.db.models import signals
-from utils.send_letter_on_email.send_letter_on_email import Util
 
 
 class Ad(models.Model):
@@ -27,38 +24,3 @@ class Ad(models.Model):
 
     def __str__(self):
         return self.title
-
-
-def approved_ad(sender, instance, **kwargs):
-    """Moderation check notification"""
-    ad = Ad.objects.get(title=instance)
-    user = ad.author
-    if ad.is_published:
-        print('Объявление опубликованно')
-        # Sending a letter to the mail for confirmation
-        email_body = 'Привет ' + user.username + ' ваше объявление успешно добавленно'
-        email_subject = 'Создание объявления'
-        to_email = user.email
-        data_send_mail = {
-            'email_body': email_body,
-            'email_subject': email_subject,
-            'to_email': to_email
-        }
-        Util.send_email(data=data_send_mail)
-    # else:
-    #     # Sending a letter to the mail for confirmation
-    #     email_body = 'Привет ' + user.username + ' ваше объявление отклоненно, так как не соответствует регламенту'
-    #     email_subject = 'Создание объявления'
-    #     to_email = user.email
-    #     data_send_mail = {
-    #         'email_body': email_body,
-    #         'email_subject': email_subject,
-    #         'to_email': to_email
-    #     }
-    #     Util.send_email(data=data_send_mail)
-
-
-signals.post_save.connect(approved_ad, sender=Ad)
-
-
-

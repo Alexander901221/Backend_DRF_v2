@@ -15,23 +15,45 @@ class BidRetrieveAPIView(APIView):
 
     def get(self, request, *args, **kwargs):
         ad_id = self.kwargs['ad_pk']
+        print('ad_id --> ', ad_id)
         bid_id = self.kwargs['bid_pk']
+        print('bid_id --> ', bid_id)
+
+        ad = Bid.objects.filter(Q(ad__author__pk=request.user.pk) & Q(ad__pk=ad_id)).values('pk')
 
         bid = Bid.objects\
-            .filter(Q(ad__author__pk=request.user.pk) & Q(ad__pk=ad_id) & Q(pk=bid_id)) \
-            .annotate(username=F('author__username'), photo=F('author__photo'), user_id=F('author__id')) \
+            .filter(Q(ad__author__pk=request.user.pk) & Q(pk=bid_id)) \
             .values(
-                'id', 'user_id', 'username', 'photo', 'photos', 'create_ad'
+                'id', 'photos', 'create_ad', 'author__id', 'author__username', 'author__photo'
             )
 
-        return JsonResponse(
-            {
-                'status': "success",
-                'message': "Ваша заявка успешно полученна",
-                'data': list(bid)
-            },
-            status=status.HTTP_200_OK
-        )
+        if not ad:
+            return JsonResponse(
+                {
+                    'status': "error",
+                    'message': "У вас нет данного объявления"
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if not bid:
+            return JsonResponse(
+                {
+                    'status': "error",
+                    'message': "У вас нет данной заявки"
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        if ad and bid:
+            return JsonResponse(
+                {
+                    'status': "success",
+                    'message': "Ваша заявка успешно полученна",
+                    'data': list(bid)
+                },
+                status=status.HTTP_200_OK
+            )
 
 
 class BidCreateView(views.APIView):
@@ -55,7 +77,6 @@ class BidCreateView(views.APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         else:
-            pass
             check_bid.create(
                 author=self.request.user,
                 ad=ad,
@@ -101,19 +122,19 @@ class MyBidsRetrieveAPIView(APIView):
                     'status': 'error',
                     'message': 'У вас пока нет заявок'
                 },
-                status=200
+                status=status.HTTP_404_NOT_FOUND
             )
 
 
 class BidRejected(generics.DestroyAPIView):
-    """rejected bid"""
+    """Rejected bid"""
     serializer_class = BidSerializer
     # permission_classes = []
-    queryset = Bid.objects.all()
 
     def delete(self, request, *args, **kwargs):
         param = self.kwargs['pk']
-        bid = Bid.objects.filter(Q(pk=param) & Q(ad__author=self.request.user))
+        bid = Bid.objects.filter(Q(pk=param) & Q(ad__author__pk=self.request.user.pk))
+
         if bid:
             bid.delete()
             """
@@ -124,7 +145,7 @@ class BidRejected(generics.DestroyAPIView):
                     'status': 'success',
                     'message': 'Данная заявка успешно отклонена'
                  },
-                status=200
+                status=status.HTTP_200_OK
             )
         else:
             return JsonResponse(
@@ -132,5 +153,5 @@ class BidRejected(generics.DestroyAPIView):
                     'status': 'error',
                     'message': 'Данной заявки не существует'
                 },
-                status=400
+                status=status.HTTP_404_NOT_FOUND
             )
