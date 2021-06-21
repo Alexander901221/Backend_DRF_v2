@@ -6,8 +6,7 @@ from ad.models import Ad
 from django.db.models import Q
 from bid.models import Bid
 from user.models import User
-
-# Добавление в комнату
+from loguru import logger
 from participant.models import Participant
 
 
@@ -16,6 +15,7 @@ class ParticipantRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = ParticipantSerializer
     permission_classes = []
 
+    @logger.catch
     def get(self, request, *args, **kwargs):
         ad_id = self.kwargs['ad_pk']
         participant_id = self.kwargs['participant_pk']
@@ -63,6 +63,7 @@ class MyParticipantsListAPIView(APIView):
     serializer_class = ParticipantSerializer
     permission_classes = []
 
+    @logger.catch
     def get(self, request, *args, **kwargs):
         ad_id = self.kwargs['pk']
 
@@ -96,6 +97,7 @@ class ParticipantCreateView(generics.CreateAPIView):
     serializer_class = ParticipantSerializer
     permission_classes = []
 
+    @logger.catch
     def post(self, request, *args, **kwargs):
         user_id = self.request.data['id_user']
         ad_id = self.request.data['id_ad']
@@ -178,6 +180,7 @@ class ParticipantDestroyAPIView(generics.DestroyAPIView):
     permission_classes = []
     queryset = Participant.objects.all()
 
+    @logger.catch
     def delete(self, request, *args, **kwargs):
         ad_id = kwargs['ad_pk']
         participant_id = kwargs['participant_pk']

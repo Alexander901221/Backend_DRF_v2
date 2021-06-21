@@ -14,7 +14,6 @@ from utils.send_letter_on_email.send_letter_on_email import Util
 from utils.optimization_photo.optimization_photo import optimization_photo
 from utils.format_images.format_images import check_uploaded_image_format
 from django.contrib.auth.hashers import check_password, make_password
-
 from loguru import logger
 
 
@@ -23,6 +22,7 @@ class UserListView(generics.ListAPIView):
     serializer_class = UserSerializers
     permission_classes = [permissions.IsAdminUser]
 
+    @logger.catch
     def get_queryset(self):
         return User.objects.all().only(
             'id', 'username', 'first_name', 'last_name', 'email', 'city',
@@ -35,6 +35,7 @@ class UserRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = UserSerializers
     permission_classes = [permissions.IsAdminUser]
 
+    @logger.catch
     def get_queryset(self):
         return User.objects.all().only(
             'id', 'username', 'first_name', 'last_name', 'email', 'city',

@@ -6,6 +6,7 @@ from .models import Bid
 from .serializers import BidSerializer, CreateBidSerializer, MyBidsSerializer
 from ad.models import Ad
 from participant.models import Participant
+from loguru import logger
 
 
 class BidRetrieveAPIView(APIView):
@@ -13,6 +14,7 @@ class BidRetrieveAPIView(APIView):
     serializer_class = BidSerializer
     # permission_classes = []
 
+    @logger.catch
     def get(self, request, *args, **kwargs):
         ad_id = self.kwargs['ad_pk']
         print('ad_id --> ', ad_id)
@@ -61,6 +63,7 @@ class BidCreateView(views.APIView):
     serializer_class = CreateBidSerializer
     # permission_classes = []
 
+    @logger.catch
     def post(self, request, *args, **kwargs):
         data = self.request.data
 
@@ -99,6 +102,7 @@ class MyBidsRetrieveAPIView(APIView):
     """Get all my bids for ad"""
     serializer_class = MyBidsSerializer
 
+    @logger.catch
     def get(self, request, *args, **kwargs):
         id_ad = self.kwargs['pk']
         bids = Bid.objects \
@@ -131,6 +135,7 @@ class BidRejected(generics.DestroyAPIView):
     serializer_class = BidSerializer
     # permission_classes = []
 
+    @logger.catch
     def delete(self, request, *args, **kwargs):
         param = self.kwargs['pk']
         bid = Bid.objects.filter(Q(pk=param) & Q(ad__author__pk=self.request.user.pk))
