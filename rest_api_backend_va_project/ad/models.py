@@ -5,6 +5,16 @@ from user.models import User
 from utils.choices.choices import CITIES
 
 
+class MyManager(models.Manager):
+    def custom_filter(self, **kwargs):
+        kwargs['is_published'] = True
+        return super().get_queryset().filter(**kwargs)
+
+    def custom_order_by(self, *args):
+        args = ('party_date',) + args
+        return super().get_queryset().order_by(*args)
+
+
 class Ad(models.Model):
     title = models.CharField(max_length=100, verbose_name="Название объявления")
     author = models.ForeignKey(User, on_delete=models.CASCADE, verbose_name="Автор")
@@ -24,3 +34,6 @@ class Ad(models.Model):
 
     def __str__(self):
         return self.title
+
+    objects = models.Manager()
+    custom_manager = MyManager()

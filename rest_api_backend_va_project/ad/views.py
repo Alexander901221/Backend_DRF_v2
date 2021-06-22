@@ -16,7 +16,11 @@ class AdListView(generics.ListAPIView):
 
     @logger.catch
     def get_queryset(self):
-        return Ad.objects.all().defer("is_published", "create_ad", "author__password").select_related('author')
+        return Ad.custom_manager\
+            .custom_filter()\
+            .all()\
+            .defer("is_published", "create_ad", "author__password")\
+            .select_related('author')
 
 
 class AdRetrieveAPIView(generics.RetrieveAPIView):
@@ -161,6 +165,6 @@ class MyAdsListAPIView(generics.ListAPIView):
 
     @logger.catch
     def get_queryset(self):
-        return Ad.objects \
+        return Ad.custom_manager.custom_order_by('party_date') \
             .defer("create_ad", "author__password") \
             .filter(author__pk=self.request.user.pk)
