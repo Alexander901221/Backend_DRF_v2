@@ -8,8 +8,8 @@ from random import randint
 import os
 
 from .serializers import UserSerializers, \
-    ChangePasswordSerializer, GetMeSerializer, UpdateUserSerializers
-from .models import User
+    ChangePasswordSerializer, GetMeSerializer, UpdateUserSerializers, SubscriptionSerializer
+from .models import User, Subscription
 from utils.send_letter_on_email.send_letter_on_email import Util
 from utils.optimization_photo.optimization_photo import optimization_photo
 from utils.format_images.format_images import check_uploaded_image_format
@@ -377,3 +377,50 @@ class GetDataAboutMe(generics.ListAPIView):
         return User.objects.filter(pk=self.request.user.pk) \
             .only('id', 'username', 'first_name', 'last_name', 'email', 'city', 'birth_day', 'sex', 'photo',
                   'confirm_email', 'confirm_account')
+
+
+class SubscriptionAPIView(generics.ListAPIView):
+    """Get all subscriptions"""
+    serializer_class = SubscriptionSerializer
+    permission_classes = []
+    queryset = Subscription.objects.all()
+
+
+class MySubscriber(views.APIView):
+    """Get my subscription"""
+    serializer_class = SubscriptionSerializer
+    permission_classes = []
+
+    def get(self, request, *args, **kwargs):
+        my_subscriber = Subscription.objects\
+            .filter(author__pk=request.user.pk)\
+            .values('date_start', 'date_end')
+
+        if my_subscriber:
+            for sub in my_subscriber:
+                date_start = sub['date_start']
+                date_end = sub['date_end']
+                days_left = str(date_end - date_start)
+
+                days_left = [
+                    {'time_left': {
+                        'days': days_left[:2],
+                        'hours': days_left[9:14]
+                    }}
+                ]
+
+                return JsonResponse(
+                    {
+                        'status': 'success',
+                        'data': list(my_subscriber) + days_left
+                    },
+                    status=status.HTTP_200_OK
+                )
+        else:
+            return JsonResponse(
+                {
+                    'status': 'error',
+                    'message': 'У вас нет оплаченной подписки'
+                },
+                status=status.HTTP_404_NOT_FOUND
+            )

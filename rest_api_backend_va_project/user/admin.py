@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.safestring import mark_safe
 
-from .models import User
+from .models import User, Subscription
 
 
 class UserAdmin(admin.ModelAdmin):
@@ -21,3 +21,10 @@ class UserAdmin(admin.ModelAdmin):
 admin.site.site_header = "Административная панель VA"
 admin.site.index_title = "Модели"
 admin.site.register(User, UserAdmin)
+
+
+class SubscriptionAdmin(admin.ModelAdmin):
+    pass
+
+
+admin.site.register(Subscription, SubscriptionAdmin)

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import User, Subscription
 
 
 class CreateUserSerializers(serializers.ModelSerializer):
@@ -54,3 +54,11 @@ class UpdateUserSerializers(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('first_name', 'city', 'birth_day', 'sex', 'photo')
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Subscription
+        fields = (
+            'author', 'date_start', 'date_end'
+        )

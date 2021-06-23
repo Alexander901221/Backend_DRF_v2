@@ -29,4 +29,8 @@ urlpatterns = [
 
     # Change password
     path('auth/change-password', ChangePasswordView.as_view(), name='change-password'),  # Оптимизированно
+
+    # Subscription
+    path('subscribers/', SubscriptionAPIView.as_view()),
+    path('my_subscriber/', MySubscriber.as_view())
 ]
