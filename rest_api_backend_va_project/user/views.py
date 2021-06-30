@@ -10,7 +10,7 @@ import os
 from .serializers import UserSerializers, \
     ChangePasswordSerializer, GetMeSerializer, UpdateUserSerializers, SubscriptionSerializer
 from .models import User, Subscription
-from utils.send_letter_on_email.send_letter_on_email import Util
+from utils.send_letter_on_email.send_letter_on_email import Util, SendEmail
 from utils.optimization_photo.optimization_photo import optimization_photo
 from utils.format_images.format_images import check_uploaded_image_format
 from django.contrib.auth.hashers import check_password, make_password
@@ -174,12 +174,16 @@ class RegisterView(views.APIView):
                          '\n\n' + f'Если вы {data["first_name"]} не запрашивали это сообщение, проигнорируйте его.' + '\n\n' + 'С уважением,' + '\n' + 'Команда VA'
             email_subject = 'Подтверждения вашего E-Mail'
             to_email = data['email']
-            data_send_mail = {
-                'email_body': email_body,
-                'email_subject': email_subject,
-                'to_email': to_email
-            }
-            Util.send_email(data=data_send_mail)
+            # data_send_mail = {
+            #     'email_body': email_body,
+            #     'email_subject': email_subject,
+            #     'to_email': to_email
+            # }
+            # Util.send_email(data=data_send_mail)
+
+            send_letter = SendEmail(to_email, email_subject, email_body)
+
+            send_letter.send()
 
             return JsonResponse(
                 {

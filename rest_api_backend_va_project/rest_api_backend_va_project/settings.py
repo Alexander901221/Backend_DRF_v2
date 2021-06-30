@@ -99,7 +99,7 @@ WSGI_APPLICATION = 'rest_api_backend_va_project.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'va_company_database',
+        'NAME': 'va_rest_api',
         'USER': 'postgres',
         'PASSWORD': '19661966',
         'HOST': '127.0.0.1',
