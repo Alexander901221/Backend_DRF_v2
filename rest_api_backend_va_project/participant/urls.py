@@ -2,7 +2,7 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
-    # Create participant
+    # Add participant
     path('create', ParticipantCreateView.as_view()),
 
     # Get participant for pk

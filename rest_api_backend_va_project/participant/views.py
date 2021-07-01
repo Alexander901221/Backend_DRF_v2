@@ -8,6 +8,7 @@ from bid.models import Bid
 from user.models import User
 from loguru import logger
 from participant.models import Participant
+from room_chat.models import Room
 
 
 class ParticipantRetrieveAPIView(generics.RetrieveAPIView):
@@ -133,7 +134,7 @@ class ParticipantCreateView(generics.CreateAPIView):
                             status=status.HTTP_404_NOT_FOUND
                         )
                     else:
-                        participant.create(
+                        participant = participant.create(
                             user=user,
                             ad=my_ad,
                             number_of_person=int(bid['number_of_person']),
@@ -141,6 +142,10 @@ class ParticipantCreateView(generics.CreateAPIView):
                             number_of_boys=int(bid['number_of_boys']),
                             photos=bid['photos']
                         )
+
+                        print('participant --> ', participant)
+                        room = Room.objects.get(ad__pk=ad_id)
+                        room.invited.add(user)
 
                 check_user_bid.delete()
 

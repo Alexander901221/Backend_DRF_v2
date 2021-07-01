@@ -62,3 +62,9 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         fields = (
             'author', 'date_start', 'date_end'
         )
+
+
+class UserRoomChatSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'username', 'photo')

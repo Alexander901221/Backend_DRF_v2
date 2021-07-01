@@ -3,6 +3,7 @@ from rest_framework import generics, permissions, status
 from django.http import JsonResponse
 
 from .models import Ad
+from room_chat.models import Room
 from .serializers import CreateAdSerializer, AdSerializer, UpdateAdSerializer, GetMyDataSerializer
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
@@ -52,7 +53,7 @@ class AdCreateView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        author_ad.create(
+        ad = author_ad.create(
             title=data['title'],
             author=user,
             geolocation=data['geolocation'],
@@ -62,6 +63,9 @@ class AdCreateView(APIView):
             number_of_boys=data['number_of_boys'],
             party_date=data['party_date']
         )
+
+        # Создание чата
+        room = Room.objects.create(ad=ad)
 
         # WebSocket notification ("Объявление успешно созданно")
 

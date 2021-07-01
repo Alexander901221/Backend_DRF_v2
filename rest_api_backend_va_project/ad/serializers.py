@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Ad
-from user.serializers import UserSerializers
+from user.serializers import UserSerializers, UserRoomChatSerializer
 
 
 class CreateAdSerializer(serializers.ModelSerializer):
@@ -46,6 +46,16 @@ class GetMyDataSerializer(serializers.ModelSerializer):
             'id', 'title', 'author', 'city', 'geolocation',
             'number_of_person', 'number_of_girls', 'number_of_boys',
             'party_date', 'participants', 'is_published'
-            # 'create_ad'
+        )
+        read_only_fields = fields
+
+
+class AdRoomChatSerializer(serializers.ModelSerializer):
+    author = UserRoomChatSerializer(read_only=True)
+
+    class Meta:
+        model = Ad
+        fields = (
+            'id', 'title', 'author', 'party_date',
         )
         read_only_fields = fields

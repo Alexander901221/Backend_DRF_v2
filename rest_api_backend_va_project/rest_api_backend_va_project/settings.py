@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'django_extensions',  # pip install Werkzeug  and  pip install django-extensions
     'bid',
     'participant',
+    'room_chat'
 ]
 
 MIDDLEWARE = [

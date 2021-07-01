@@ -10,7 +10,7 @@ import os
 from .serializers import UserSerializers, \
     ChangePasswordSerializer, GetMeSerializer, UpdateUserSerializers, SubscriptionSerializer
 from .models import User, Subscription
-from utils.send_letter_on_email.send_letter_on_email import Util, SendEmail
+from utils.send_letter_on_email.send_letter_on_email import SendEmail
 from utils.optimization_photo.optimization_photo import optimization_photo
 from utils.format_images.format_images import check_uploaded_image_format
 from django.contrib.auth.hashers import check_password, make_password
