@@ -3,10 +3,15 @@ from rest_framework import permissions, status
 from django.shortcuts import render
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
 from .serializers import RoomSerializers, ChatSerializer
 from .models import Room, Chat
 from django.http import JsonResponse
+from rest_framework.pagination import PageNumberPagination
+from utils.mixins.pagination import PaginationHandlerMixin
+
+
+class BasicPagination(PageNumberPagination):
+    page_size_query_param = 'count'
 
 
 class MyRooms(APIView):
@@ -28,15 +33,20 @@ class MyRooms(APIView):
             )
 
 
-class Messages(APIView):
+class Messages(APIView, PaginationHandlerMixin):
     """Get all messages for room"""
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = BasicPagination
 
     def get(self, request, pk):
-        messages = Chat.objects.all().filter(Q(room__pk=pk) & Q(room__invited__pk=request.user.pk))
+        messages = Chat.objects.order_by('-date').all().filter(Q(room__pk=pk) & Q(room__invited__pk=request.user.pk))
         if messages:
-            serializer = ChatSerializer(messages, many=True)
-            return Response({"data": serializer.data})
+            page = self.paginate_queryset(messages)
+            if page is not None:
+                serializer = self.get_paginated_response(ChatSerializer(page, many=True).data)
+            else:
+                serializer = ChatSerializer(messages, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         else:
             return JsonResponse(
                 {
