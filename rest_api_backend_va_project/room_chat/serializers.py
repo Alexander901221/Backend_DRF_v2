@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from .models import Room
-from ad.serializers import AdRoomChatSerializer
+from .models import Room, Chat
+from ad.serializers import AdRoomChatSerializer, CreateAdSerializer
 from user.serializers import UserRoomChatSerializer
 
 
@@ -11,5 +11,12 @@ class RoomSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = Room
-        # fields = '__all__'
         fields = ['id', 'ad', 'invited']
+
+
+class ChatSerializer(serializers.ModelSerializer):
+    user = UserRoomChatSerializer(read_only=True)
+    class Meta:
+        model = Chat
+        fields = ('id', 'text', 'date', 'room', 'user')
+

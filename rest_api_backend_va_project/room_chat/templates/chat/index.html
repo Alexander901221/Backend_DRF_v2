@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Chat Rooms</title>
+</head>
+<body>
+    <h1>Выбирите комнату объявления</h1><br>
+
+    <button id="button_add_1" style="width: 250px; height: 100px; font-size: 30px; margin-bottom: 50px;">8</button>
+    <br />
+    <button id="button_add_2" style="width: 250px; height: 100px; font-size: 30px;">9</button>
+
+    <script>
+            document.querySelector('#button_add_1').onclick = function(e) {  // Присоединение к объявлению
+                var roomName = document.querySelector('#button_add_1').textContent;
+                window.location.pathname = '/api/chat/' + roomName + '/';
+            };
+
+            document.querySelector('#button_add_2').onclick = function(e) {  // Присоединение к объявлению
+                var roomName = document.querySelector('#button_add_2').textContent;  // ad2
+                window.location.pathname = '/api/chat/' + roomName + '/';
+            };
+    </script>
+</body>
+</html>

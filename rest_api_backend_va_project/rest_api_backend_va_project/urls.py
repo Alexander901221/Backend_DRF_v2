@@ -28,7 +28,7 @@ urlpatterns = [
     path('api/participant/', include('participant.urls')),
 
     # Room chat
-    path('api/room_chat/', include('room_chat.urls')),
+    path('api/chat/', include('room_chat.urls')),
 
     # Token
     path('api/token/', TokenObtainPairView.as_view()),  # для авторизации {username: 'alex123', password: '123qwe'}

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8"/>
+    <title>Chat Room</title>
+</head>
+<body>
+<div id="messages">
+    {% for message in messages|dictsort:"date" %}
+        <p>{{message}}</p>
+    {% endfor %}
+</div>
+    <textarea
+            id="chat-log"
+            cols="100"
+            rows="20"
+            style="margin: 20px 0 0 320px; font-size: 20px"
+    ></textarea><br>
+    <input
+            id="chat-message-input"
+            type="text"
+            size="66"
+            style="margin: 20px 0 0 320px; height: 30px; font-size: 20px"
+    ><br>
+    <input
+            id="chat-message-submit"
+            type="button"
+            value="Отправить"
+            style="height: 100px; width: 200px; font-size: 30px; margin: 30px 0 0 320px;"
+    >
+    {{ room_name|json_script:"room-name" }}
+    <script>
+        const roomName = JSON.parse(document.getElementById('room-name').textContent);  // Название комнаты
+
+        const chatSocket = new WebSocket(  // создается адрес по которому будут отправляться сообщения ( на бэке в routing.py обрабатывается )
+            'ws://'
+            + window.location.host
+            + '/ws/chat/'
+            + roomName
+            + '/'
+        );
+        console.log('chatSocket --> ', chatSocket)
+
+        chatSocket.onopen = function(e) {
+            console.log(e)
+            result = 'CONNECT CHIDA'
+            return result
+        }
+
+        chatSocket.onmessage = function(e) {  // Получение и добавление в textarea сообщения
+            const data = JSON.parse(e.data);
+            console.log('data', data);
+<!--            document.querySelector('#chat-log').value += (data.message_to_room['text'] + '\n');-->
+            document.querySelector('#messages').innerHTML += (data.message_to_room['text'] + '\n');
+        };
+
+        chatSocket.onclose = function(e) { // Сообщение при отключение socket
+            console.error('Чат socket закрылся неожиданно');
+            console.log('chatSocket', chatSocket)
+        };
+
+        document.querySelector('#chat-message-submit').onclick = function(e) { // Отправка сообщения
+            const messageInputDom = document.querySelector('#chat-message-input');
+            const message = messageInputDom.value;  // Сообщение введенное в input
+            chatSocket.send(JSON.stringify({
+                'message': message
+            }));
+            messageInputDom.value = '';
+        };
+    </script>
+</body>
+</html>

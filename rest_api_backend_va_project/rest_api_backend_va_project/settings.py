@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'channels',
     'corsheaders',
     'user',
     'ad',
@@ -249,3 +250,15 @@ logger.add(
     compression="zip",
     serialize=True
 )
+
+# Websockets (Channels)
+ASGI_APPLICATION = "rest_api_backend_va_project.asgi.application"
+
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('127.0.0.1', 8300)],
+        },
+    },
+}
