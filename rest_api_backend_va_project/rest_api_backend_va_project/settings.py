@@ -35,6 +35,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'notification',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -50,7 +51,7 @@ INSTALLED_APPS = [
     'django_extensions',  # pip install Werkzeug  and  pip install django-extensions
     'bid',
     'participant',
-    'room_chat'
+    'room_chat',
 ]
 
 MIDDLEWARE = [
@@ -97,17 +98,6 @@ WSGI_APPLICATION = 'rest_api_backend_va_project.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
-
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.postgresql',
-#         'NAME': 'va_rest_api',
-#         'USER': 'postgres',
-#         'PASSWORD': '19661966',
-#         'HOST': '127.0.0.1',
-#         'PORT': '5432',
-#     }
-# }
 
 DATABASES = {
     'default': {
@@ -264,6 +254,7 @@ logger.add(
 
 # Websockets (Channels)
 ASGI_APPLICATION = "rest_api_backend_va_project.asgi.application"
+
 
 CHANNEL_LAYERS = {
     'default': {

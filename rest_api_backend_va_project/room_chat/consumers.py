@@ -64,6 +64,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'message_to_room': message
         }))
+    
+    async def onopen(self):
+        print('self -> ', self)
 
     @database_sync_to_async  # Чтобы мы могли обращаться к базе внутри функции
     def create_message(self, text):

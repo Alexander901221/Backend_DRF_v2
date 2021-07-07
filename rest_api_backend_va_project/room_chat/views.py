@@ -39,7 +39,7 @@ class Messages(APIView, PaginationHandlerMixin):
     pagination_class = BasicPagination
 
     def get(self, request, pk):
-        messages = Chat.objects.order_by('-date').all().filter(Q(room__pk=pk) & Q(room__invited__pk=request.user.pk))
+        messages = Chat.objects.all().filter(Q(room__pk=pk) & Q(room__invited__pk=request.user.pk))
         if messages:
             page = self.paginate_queryset(messages)
             if page is not None:

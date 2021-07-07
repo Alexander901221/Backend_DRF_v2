@@ -122,6 +122,7 @@ class RegisterView(views.APIView):
 
     @logger.catch
     def post(self, request):
+        print('!SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSDASDASDASDa')
         try:
             data = request.data
             check_email_exist = User.objects.filter(email=data['email']).exists()
