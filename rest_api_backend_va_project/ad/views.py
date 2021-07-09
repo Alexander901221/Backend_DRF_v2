@@ -172,3 +172,16 @@ class MyAdsListAPIView(generics.ListAPIView):
         return Ad.custom_manager.custom_order_by('party_date') \
             .defer("create_ad", "author__password") \
             .filter(author__pk=self.request.user.pk)
+
+
+# Notification
+from django.views.generic import TemplateView
+
+
+class AdView(TemplateView):
+    template_name = "ad.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user'] = self.request.user
+        return context

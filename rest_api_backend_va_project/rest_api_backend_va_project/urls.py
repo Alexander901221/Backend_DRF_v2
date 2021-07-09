@@ -30,8 +30,6 @@ urlpatterns = [
     # Room chat
     path('api/chat/', include('room_chat.urls')),
 
-    path('', include('notification.urls')),
-
     # Token
     path('api/token/', TokenObtainPairView.as_view()),  # для авторизации {username: 'alex123', password: '123qwe'}
     path('api/token/refresh/', TokenRefreshView.as_view()),

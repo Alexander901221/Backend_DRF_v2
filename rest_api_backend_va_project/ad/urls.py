@@ -18,5 +18,8 @@ urlpatterns = [
     path('remove/<int:pk>', AdDestroyAPIView.as_view()),  # Оптимизированно
 
     # Get all my ads
-    path('my_ads/', MyAdsListAPIView.as_view())  # Оптимизированно
+    path('my_ads/', MyAdsListAPIView.as_view()),  # Оптимизированно
+
+    # Notification
+    path('notification/', AdView.as_view())
 ]

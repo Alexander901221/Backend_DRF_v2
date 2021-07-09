@@ -37,3 +37,58 @@ class Ad(models.Model):
 
     objects = models.Manager()
     custom_manager = MyManager()
+
+
+from django.db.models.signals import pre_save, post_save, pre_delete, post_delete
+from django.dispatch import receiver
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
+import json
+
+#  Уведомление о создание и изменения объявления
+@receiver(pre_save, sender=Ad)
+def on_change(sender, instance: User, **kwargs):
+    print('instance -> ', instance)  # User который изменяет свои данные
+    print('sender -> ', sender)
+    print('kwargs -> ', kwargs)
+
+    if instance.id is None: # создание нового user
+        print('True chiDa')
+        print('instance.author.username -> ', instance.author.username)
+        print('instance.title --> ', instance.title)
+        channel_layer = get_channel_layer()
+        async_to_sync(channel_layer.group_send)(
+            "ad", {
+                "type": "ad",
+                "event": "Create ad",
+                "username": instance.author.username,
+                "ad_title": instance.title
+            }
+        )
+    else:
+        print('ELSE SUKA CHIDA')
+        previous = Ad.objects.get(id=instance.id)
+        if previous.is_published != instance.is_published: # поле было измененно
+            if instance.is_published:
+                channel_layer = get_channel_layer()
+                async_to_sync(channel_layer.group_send)(
+                    "ad", {
+                        "type": "ad",
+                        "event": "Ad published",
+                        "username": instance.author.username,
+                        "ad_title": instance.title,
+                        "message": "Объявление было успешно опубликованно",
+                        "ad": {
+                            "title": previous.title,
+                            "author": previous.author.username,
+                            "city": previous.city,
+                            "geolocation": previous.geolocation,
+                            "number_of_person": previous.number_of_person,
+                            "number_of_girls": previous.number_of_girls,
+                            "number_of_boys": previous.number_of_boys,
+                            "party_date": json.dumps(previous.party_date, indent=4, sort_keys=True, default=str),
+                            "participants": previous.participants,
+                            "is_published": previous.is_published,
+                        }
+                    }
+                )

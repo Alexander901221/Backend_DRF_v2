@@ -5,7 +5,8 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 # import room_chat.routing
 from room_chat.consumers import ChatConsumer
-from notification.consumers import NoseyConsumer
+from user.consumers import NoseyConsumer
+from ad.consumers import AdConsumer
 from django.urls import path, re_path
 
 
@@ -17,7 +18,8 @@ application = ProtocolTypeRouter({
     "websocket": AuthMiddlewareStack(
 			URLRouter([
 					path('ws/chat/<room_name>/', ChatConsumer.as_asgi()),
-                    path('ws/notification/', NoseyConsumer.as_asgi())
+                    path('ws/notification/user/', NoseyConsumer.as_asgi()),
+                    path('ws/notification/ad/', AdConsumer.as_asgi())
 			])
     ),
 })

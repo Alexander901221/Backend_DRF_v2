@@ -32,5 +32,8 @@ urlpatterns = [
 
     # Subscription
     path('subscribers/', SubscriptionAPIView.as_view()),
-    path('my_subscriber/', MySubscriber.as_view())
+    path('my_subscriber/', MySubscriber.as_view()),
+    
+    # Notification
+    path('notification/', HomeView.as_view())
 ]

@@ -429,3 +429,16 @@ class MySubscriber(views.APIView):
                 },
                 status=status.HTTP_404_NOT_FOUND
             )
+
+
+# Notification
+from django.views.generic import TemplateView
+
+
+class HomeView(TemplateView):
+    template_name = "user.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user'] = self.request.user
+        return context
