@@ -7,6 +7,7 @@ from django.contrib.auth.models import AnonymousUser
 from django.db.models import Q
 from .models import Chat, Room
 from user.models import User
+from django.conf import settings
 
 
 class ChatConsumer(AsyncJsonWebsocketConsumer):
@@ -39,11 +40,14 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     async def receive(self, text_data):
         print('RECEIVE')
         new_message = await self.create_message(text_data)
+        print('images --> ', settings.BASE_URL + 'images/' + str(new_message.user.photo))
 
         data = {
-            'author': new_message.user.username,
+            'username': new_message.user.username,
+            'id': new_message.user.pk,
             'created_at': new_message.date.strftime('%Y-%m-%d %H:%m'),
-            'text': new_message.text
+            'text': new_message.text,
+            'photo': '/images/' + str(new_message.user.photo)
         }
         # Отправить сообщение в комнату
         await self.channel_layer.group_send(

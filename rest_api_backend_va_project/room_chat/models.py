@@ -23,7 +23,7 @@ class Chat(models.Model):
     class Meta:
         verbose_name = "Сообщение чата"
         verbose_name_plural = "Сообщения чатов"
-        ordering = ['-date']
+        ordering = ['date']
 
     def __str__(self):
         return self.text
