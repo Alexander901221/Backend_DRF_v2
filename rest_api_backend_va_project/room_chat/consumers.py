@@ -1,19 +1,20 @@
 import json
-from channels.generic.websocket import AsyncWebsocketConsumer
+from channels.generic.websocket import AsyncWebsocketConsumer, AsyncJsonWebsocketConsumer
 from channels.exceptions import DenyConnection
 from channels.db import database_sync_to_async
 
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import Q
 from .models import Chat, Room
+from user.models import User
 
 
-class ChatConsumer(AsyncWebsocketConsumer):
+class ChatConsumer(AsyncJsonWebsocketConsumer):
     # Присоединение к комнате
     async def connect(self):
         print('CONNECT')
-        self.room_name = self.scope['url_route']['kwargs']['room_name']  # ad1
-        self.room_group_name = 'chat_%s' % self.room_name  # chat_ad1
+        self.room_name = self.scope['url_route']['kwargs']['room_name']  # id_room
+        self.room_group_name = 'chat_%s' % self.room_name  # chat_(id_room)
         self.user = self.scope["user"]
 
         await self.check_user()  # Проверка user на авторизацию и, на то что он есть в этой комнате
@@ -37,9 +38,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
     # Получение сообщения от WebSocket
     async def receive(self, text_data):
         print('RECEIVE')
-        text_data_json = json.loads(text_data)
-        message = text_data_json['message']
-        new_message = await self.create_message(message)
+        new_message = await self.create_message(text_data)
 
         data = {
             'author': new_message.user.username,
@@ -51,7 +50,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.room_group_name,
             {
                 'type': 'chat_message',
-                'message': data
+                'message': [data]
             }
         )
 
@@ -70,21 +69,24 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     @database_sync_to_async  # Чтобы мы могли обращаться к базе внутри функции
     def create_message(self, text):
+        print('CREATE_MESSAGE')
         room = Room.objects.get(pk=self.room_name)
+        user = User.objects.get(pk=self.user.pk)
         create_new_message = Chat.objects.create(
             room=room,
-            user=self.user,
+            user=user,
             text=text,
         )
 
         return create_new_message
 
     @database_sync_to_async
-    def check_user(self):
+    def check_user(self):  # Проверка user на авторизованного и на существование в комнате
         if self.scope['user'] == AnonymousUser():
             raise DenyConnection("Такого пользователя не существует")
 
-        user_in_room = Room.objects.filter(Q(pk=self.room_name) & Q(invited__username=self.user.username)).exists()
+        user_in_room = Room.objects.filter(Q(pk=self.room_name) & Q(invited__pk=self.user.pk)).exists()
+        print('user_in_room --> ', user_in_room)
 
         if not user_in_room:
             raise DenyConnection('Пользователя нет в данной комнате')

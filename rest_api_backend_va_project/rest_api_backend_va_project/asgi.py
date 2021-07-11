@@ -1,6 +1,7 @@
 import os
 
 from channels.auth import AuthMiddlewareStack
+from room_chat.chatmiddleware import JwtAuthMiddleware, JwtAuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.core.asgi import get_asgi_application
 # import room_chat.routing
@@ -15,7 +16,7 @@ os.environ.setdefault("DJANGO_SETTINGS_MODULE", "rest_api_backend_va_project.set
 
 application = ProtocolTypeRouter({
     "http": get_asgi_application(),
-    "websocket": AuthMiddlewareStack(
+    "websocket": JwtAuthMiddleware(
 			URLRouter([
 					path('ws/chat/<room_name>/', ChatConsumer.as_asgi()),
                     path('ws/notification/user/', NoseyConsumer.as_asgi()),
