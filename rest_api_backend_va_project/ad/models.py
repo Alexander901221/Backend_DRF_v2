@@ -47,8 +47,8 @@ import json
 
 #  Уведомление о создание и изменения объявления
 @receiver(pre_save, sender=Ad)
-def on_change(sender, instance: User, **kwargs):
-    print('instance -> ', instance)  # User который изменяет свои данные
+def on_change(sender, instance, **kwargs):
+    # print('instance -> ', instance)  # User который изменяет свои данные
     print('sender -> ', sender)
     print('kwargs -> ', kwargs)
 

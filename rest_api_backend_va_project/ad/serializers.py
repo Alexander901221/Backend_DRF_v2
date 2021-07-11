@@ -15,6 +15,11 @@ class CreateAdSerializer(serializers.ModelSerializer):
         )
 
 
+class GetAllAdsForMap(serializers.ModelSerializer):
+    class Meta:
+        model = Ad
+        fields = ('id', 'geolocation',)
+
 class AdSerializer(serializers.ModelSerializer):
     city = serializers.CharField(source="get_city_display")
     author = UserSerializers(read_only=True)

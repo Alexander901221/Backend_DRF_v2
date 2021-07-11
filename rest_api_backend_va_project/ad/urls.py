@@ -2,7 +2,7 @@ from django.urls import path
 from .views import *
 
 urlpatterns = [
-    # Get all ads
+    # Get all ads for map
     path('all', AdListView.as_view()),  # Оптимизированно
 
     # Create ad

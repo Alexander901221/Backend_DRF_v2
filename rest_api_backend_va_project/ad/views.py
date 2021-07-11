@@ -4,7 +4,7 @@ from django.http import JsonResponse
 
 from .models import Ad
 from room_chat.models import Room
-from .serializers import CreateAdSerializer, AdSerializer, UpdateAdSerializer, GetMyDataSerializer
+from .serializers import CreateAdSerializer, AdSerializer, UpdateAdSerializer, GetMyDataSerializer, GetAllAdsForMap
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
 from loguru import logger
@@ -12,16 +12,16 @@ from loguru import logger
 
 class AdListView(generics.ListAPIView):
     """Get all ads (GET)"""
-    serializer_class = AdSerializer
+    serializer_class = GetAllAdsForMap
     permission_classes = [permissions.IsAuthenticated]
 
     @logger.catch
     def get_queryset(self):
+        print('self.request.user --> ', self.request.user.city)
         return Ad.custom_manager\
             .custom_filter()\
-            .all()\
-            .defer("is_published", "create_ad", "author__password")\
-            .select_related('author')
+            .filter(city=self.request.user.city)\
+            .only('id', 'geolocation')
 
 
 class AdRetrieveAPIView(generics.RetrieveAPIView):
@@ -29,9 +29,45 @@ class AdRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = AdSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    @logger.catch
-    def get_queryset(self):
-        return Ad.objects.all().defer("is_published", "create_ad", "author__password").select_related('author')
+    def get(self, request, *args, **kwargs):
+        ad = Ad.objects\
+            .filter(city=self.request.user.city)\
+            .select_related('author')\
+            .only(
+                'id', 'title', 'party_date', 'number_of_person',
+                'number_of_girls', 'number_of_boys', 'author__photo'
+            )\
+            .values(
+                'id', 'title', 'party_date', 'number_of_person',
+                'number_of_girls', 'number_of_boys', 'author__photo'
+            )
+        print('ad -> ', ad)
+        if ad.exists():
+            return JsonResponse(
+                {
+                    'status': 'success',
+                    'data': list(ad)
+                },
+                status=status.HTTP_200_OK
+            )
+        else:
+            return JsonResponse(
+                {
+                    'status': 'error',
+                    'message': 'Данного объявления не существует'
+                },
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+    # @logger.catch
+    # def get_queryset(self):
+    #     ad = Ad.objects\
+    #         .filter(city=self.request.user.city)\
+    #         .defer("is_published", "create_ad", "author__password").select_related('author')
+    #     if ad:
+    #         return ad
+    #     else:
+    #         return
 
 
 class AdCreateView(APIView):
