@@ -14,7 +14,9 @@ services:
     build:
       context: ./
       dockerfile: DockerFile
-    command: bash -c "python /usr/src/Backend_DRF_v2/manage.py migrate --noinput &&
+    command: bash -c "
+             python /usr/src/Backend_DRF_v2/manage.py makemigrations --noinput &&
+             python /usr/src/Backend_DRF_v2/manage.py migrate --noinput &&
              python /usr/src/Backend_DRF_v2/manage.py runserver 0.0.0.0:8000"
     volumes:
       - .:/usr/src/Backend_DRF_v2

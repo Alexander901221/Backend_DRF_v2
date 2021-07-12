@@ -68,3 +68,9 @@ class UserRoomChatSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'photo')
+
+
+class UserAdOnMapSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ('id', 'photo')

@@ -24,7 +24,8 @@ class Ad(models.Model):
     number_of_girls = models.IntegerField(verbose_name="Количество девушек")
     number_of_boys = models.IntegerField(verbose_name="Количество парней")
     party_date = models.DateTimeField(verbose_name="Дата вечеринки")
-    participants = models.IntegerField(default=0)
+    # participants = models.IntegerField(default=0)
+    participants = models.ManyToManyField(User, verbose_name="Участники", related_name="participant_users")
     is_published = models.BooleanField(default=False, verbose_name="Опубликовано")
     create_ad = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
 

@@ -3,6 +3,7 @@ from rest_framework import generics, permissions, status
 from django.http import JsonResponse
 
 from .models import Ad
+from user.models import User
 from room_chat.models import Room
 from .serializers import CreateAdSerializer, AdSerializer, UpdateAdSerializer, GetMyDataSerializer, GetAllAdsForMap
 from rest_framework.views import APIView
@@ -24,51 +25,14 @@ class AdListView(generics.ListAPIView):
             .only('id', 'geolocation')
 
 
-class AdRetrieveAPIView(generics.RetrieveAPIView):
+class AdRetrieveAPIView(generics.ListAPIView):
     """Getting ad by param (GET)"""
     serializer_class = AdSerializer
     permission_classes = [permissions.IsAuthenticated]
 
-    def get(self, request, *args, **kwargs):
-        ad = Ad.objects\
-            .filter(city=self.request.user.city)\
-            .select_related('author')\
-            .only(
-                'id', 'title', 'party_date', 'number_of_person',
-                'number_of_girls', 'number_of_boys', 'author__photo'
-            )\
-            .values(
-                'id', 'title', 'party_date', 'number_of_person',
-                'number_of_girls', 'number_of_boys', 'author__photo'
-            )
-        print('ad -> ', ad)
-        if ad.exists():
-            return JsonResponse(
-                {
-                    'status': 'success',
-                    'data': list(ad)
-                },
-                status=status.HTTP_200_OK
-            )
-        else:
-            return JsonResponse(
-                {
-                    'status': 'error',
-                    'message': 'Данного объявления не существует'
-                },
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-    # @logger.catch
-    # def get_queryset(self):
-    #     ad = Ad.objects\
-    #         .filter(city=self.request.user.city)\
-    #         .defer("is_published", "create_ad", "author__password").select_related('author')
-    #     if ad:
-    #         return ad
-    #     else:
-    #         return
-
+    def get_queryset(self):
+        print('get_queryset')
+        return Ad.objects.filter(city=self.request.user.city)
 
 class AdCreateView(APIView):
     """Create ad (post)"""
@@ -99,6 +63,8 @@ class AdCreateView(APIView):
             number_of_boys=data['number_of_boys'],
             party_date=data['party_date']
         )
+
+        ad.participants.add(User.objects.get(pk=user.pk))
 
         # Создание чата
         room = Room.objects.create(ad=ad)
