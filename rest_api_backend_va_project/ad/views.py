@@ -9,6 +9,7 @@ from .serializers import CreateAdSerializer, AdSerializer, UpdateAdSerializer, G
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
 from loguru import logger
+import json
 
 
 class AdListView(generics.ListAPIView):
@@ -24,14 +25,54 @@ class AdListView(generics.ListAPIView):
             .only('id', 'geolocation')
 
 
+def to_json(obj):
+    return {
+        'id': obj.pk,
+        'photo': '/images/' + str(obj.photo)
+    }
+
 class AdRetrieveAPIView(generics.ListAPIView):
     """Getting ad by param (GET)"""
     serializer_class = AdSerializer
     permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request, *args, **kwargs):
+        ad = Ad.custom_manager.custom_filter().get(id=kwargs['pk'], city=self.request.user.city)
 
-    def get_queryset(self):
-        print('get_queryset')
-        return Ad.objects.filter(city=self.request.user.city)
+        participant = []
+        for element in ad.participants.all():
+            result = to_json(element)
+            participant.append(result)
+
+        if ad:
+            return JsonResponse(
+                    {
+                        'status': 'success',
+                        "ad": {
+                            "id": ad.pk,
+                            "title": ad.title,
+                            "author": {
+                                "id": ad.author.pk,
+                                "photo": '/images/' + str(ad.author.photo)
+                            },                        
+                            "number_of_person": ad.number_of_person,
+                            "number_of_girls": ad.number_of_girls,
+                            "number_of_boys": ad.number_of_boys,
+                            "party_date": json.dumps(ad.party_date, indent=4, sort_keys=True, default=str),
+                            "participants": participant,
+                        }
+                    },
+                    status=status.HTTP_200_OK
+            )
+        else:
+            return JsonResponse(
+                        {
+                            'status': 'error',
+                            'message': 'Данного объявления не существует'
+                        },
+                        status=status.HTTP_400_BAD_REQUEST
+            )
+        
 
 class AdCreateView(APIView):
     """Create ad (post)"""
