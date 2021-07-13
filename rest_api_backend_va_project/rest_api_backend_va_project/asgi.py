@@ -8,6 +8,7 @@ from django.core.asgi import get_asgi_application
 from room_chat.consumers import ChatConsumer
 from user.consumers import NoseyConsumer
 from ad.consumers import AdConsumer
+from bid.consumers import BidConsumer
 from django.urls import path, re_path
 
 
@@ -20,7 +21,8 @@ application = ProtocolTypeRouter({
 			URLRouter([
 					path('ws/chat/<room_name>/', ChatConsumer.as_asgi()),
                     path('ws/notification/user/', NoseyConsumer.as_asgi()),
-                    path('ws/notification/ad/', AdConsumer.as_asgi())
+                    path('ws/notification/ad/', AdConsumer.as_asgi()),
+                    path('ws/notification/bid/', BidConsumer.as_asgi())
 			])
     ),
 })

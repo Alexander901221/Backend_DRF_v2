@@ -12,5 +12,8 @@ urlpatterns = [
     path('remove/<int:pk>/', BidRejected.as_view()),  # Оптимизированно
 
     # Receiving my bids for pk
-    path('my_bids/<int:pk>/', MyBidsRetrieveAPIView.as_view())  # Оптимизированно
+    path('my_bids/<int:pk>/', MyBidsRetrieveAPIView.as_view()),  # Оптимизированно
+
+    # Notification
+    path('notification/', BidView.as_view())
 ]

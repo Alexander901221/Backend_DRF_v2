@@ -89,13 +89,13 @@ class BidCreateView(views.APIView):
                 photos=data['photos']
             )
 
-        return JsonResponse(
-            {
-                'status': "success",
-                'message': "Заявка успешно одобренна"
-            },
-            status=status.HTTP_200_OK
-        )
+            return JsonResponse(
+                {
+                    'status': "success",
+                    'message': "Заявка успешно одобренна"
+                },
+                status=status.HTTP_200_OK
+            )
 
 
 class MyBidsRetrieveAPIView(APIView):
@@ -160,3 +160,13 @@ class BidRejected(generics.DestroyAPIView):
                 },
                 status=status.HTTP_404_NOT_FOUND
             )
+
+
+from django.views.generic import TemplateView
+class BidView(TemplateView):
+    template_name = "bid.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user'] = self.request.user
+        return context

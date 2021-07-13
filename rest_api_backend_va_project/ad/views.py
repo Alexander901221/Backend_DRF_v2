@@ -20,8 +20,7 @@ class AdListView(generics.ListAPIView):
     def get_queryset(self):
         print('self.request.user --> ', self.request.user.city)
         return Ad.custom_manager\
-            .custom_filter()\
-            .filter(city=self.request.user.city)\
+            .custom_filter(city=self.request.user.city)\
             .only('id', 'geolocation')
 
 
