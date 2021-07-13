@@ -8,11 +8,12 @@
       <h1>Уведомление Заявок</h1>
       <p>Notifications</p>
       <ul id="notifylist"></ul>
+      <h2>{{ id_ad }}</h2>
       <script>
           const webSocketBridge = new WebSocket(
                   'ws://'
                   + window.location.host
-                  + '/ws/notification/bid/'
+                  + `/ws/notification/bid/{{id_ad}}/`
                   
           );
           const nl = document.querySelector("#notifylist");

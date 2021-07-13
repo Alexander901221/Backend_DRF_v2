@@ -22,7 +22,7 @@ application = ProtocolTypeRouter({
 					path('ws/chat/<room_name>/', ChatConsumer.as_asgi()),
                     path('ws/notification/user/', NoseyConsumer.as_asgi()),
                     path('ws/notification/ad/', AdConsumer.as_asgi()),
-                    path('ws/notification/bid/', BidConsumer.as_asgi())
+                    path('ws/notification/bid/<int:ad>/', BidConsumer.as_asgi())
 			])
     ),
 })
