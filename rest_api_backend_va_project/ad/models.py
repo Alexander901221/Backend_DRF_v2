@@ -59,7 +59,7 @@ def on_change(sender, instance, **kwargs):
     if instance.id is None: # Create a new ad
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
-            "ad", {
+            f"user_id_{instance.author.pk}", {
                 "type": "ad",
                 "event": "Create ad",
                 "username": instance.author.username,
@@ -77,7 +77,7 @@ def on_change(sender, instance, **kwargs):
             if instance.is_published:
                 channel_layer = get_channel_layer()
                 async_to_sync(channel_layer.group_send)(
-                    "ad", {
+                    f"user_id_{instance.author.pk}", {
                         "type": "ad",
                         "event": "Ad published",
                         "message": "Объявление было успешно опубликованно",

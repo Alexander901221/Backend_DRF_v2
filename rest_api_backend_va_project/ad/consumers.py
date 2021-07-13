@@ -5,13 +5,22 @@ class AdConsumer(AsyncJsonWebsocketConsumer):
 
     async def connect(self):
         print('Connect (consumer - Ad)')
+        self.id_user = self.scope['url_route']['kwargs']['user']
+        self.ad_group_name = 'user_id_%s' % self.id_user
+        print('self.ad_group_name --> ', self.ad_group_name)
         await self.accept()
-        await self.channel_layer.group_add("ad", self.channel_name)
+        await self.channel_layer.group_add(
+            self.ad_group_name, 
+            self.channel_name
+        )
         print(f"Added {self.channel_name} channel to ad")
 
     async def disconnect(self, close_code):
         print('Disconnect (consumer - Ad)')
-        await self.channel_layer.group_discard("ad", self.channel_name)
+        await self.channel_layer.group_discard(
+            self.ad_group_name, 
+            self.channel_name
+        )
         print(f"Removed {self.channel_name} channel to ad")
 
     async def ad(self, event):

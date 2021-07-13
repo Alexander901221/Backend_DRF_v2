@@ -49,7 +49,7 @@ def on_change(sender, instance: User, **kwargs):
     if instance.id is None: # создание нового user
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
-            "gossip", {
+            f"user_{str(instance.pk)}", {
                 "type": "user.gossip",
                 "event": "New User",
                 "username": instance.username
@@ -61,7 +61,7 @@ def on_change(sender, instance: User, **kwargs):
             if instance.confirm_account:
                 channel_layer = get_channel_layer()
                 async_to_sync(channel_layer.group_send)(
-                    "gossip", {
+                    f"user_{str(instance.pk)}", {
                         "type": "user.gossip",
                         "event": "Success confirm account",
                         "username": instance.username,
@@ -71,7 +71,7 @@ def on_change(sender, instance: User, **kwargs):
             else:
                 channel_layer = get_channel_layer()
                 async_to_sync(channel_layer.group_send)(
-                    "gossip", {
+                    f"user_{str(instance.pk)}", {
                         "type": "user.gossip",
                         "event": "Error confirm account",
                         "username": instance.username,
@@ -80,14 +80,14 @@ def on_change(sender, instance: User, **kwargs):
                 )
 
 
-#  Уведомление о удаление пользователя
-@receiver(pre_delete, sender=User)
-def announce_new_user2(sender, instance, **kwargs):
-    channel_layer = get_channel_layer()
-    async_to_sync(channel_layer.group_send)(
-        "gossip", {
-            "type": "user.gossip",
-            "event": "Delete User",
-            "username": instance.username
-        }
-    )
+# #  Уведомление о удаление пользователя
+# @receiver(pre_delete, sender=User)
+# def announce_new_user2(sender, instance, **kwargs):
+#     channel_layer = get_channel_layer()
+#     async_to_sync(channel_layer.group_send)(
+#         f"user_{str(instance.pk)}", {
+#             "type": "user.gossip",
+#             "event": "Delete User",
+#             "username": instance.username
+#         }
+#     )

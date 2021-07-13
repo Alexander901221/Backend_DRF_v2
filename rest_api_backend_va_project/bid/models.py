@@ -25,6 +25,7 @@ from django.dispatch import receiver
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 import json
+from .consumers import BidConsumer
 
 # def to_json(obj):
 #     return {
@@ -39,7 +40,7 @@ def on_change(sender, instance, **kwargs):
     if instance.id is None: # Create a new ad
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
-            "bid", {
+            f"ad_{str(instance.ad.pk)}", {
                 "type": "bid",
                 "event": "Create bid",
                 "bid": {

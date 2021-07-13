@@ -12,7 +12,7 @@
         const webSocketBridge = new WebSocket(
                 'ws://'
                 + window.location.host
-                + '/ws/notification/ad/'
+                + '/ws/notification/ad/{{user.pk}}/'
                 
         );
         const nl = document.querySelector("#notifylist");
