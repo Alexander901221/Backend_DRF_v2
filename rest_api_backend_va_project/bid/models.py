@@ -9,7 +9,7 @@ class Bid(models.Model):
     number_of_person = models.IntegerField(verbose_name="Количество человек")
     number_of_girls = models.IntegerField(verbose_name="Количество девушек")
     number_of_boys = models.IntegerField(verbose_name="Количество парней")
-    photos = models.ImageField(upload_to='images/bids', blank=True)
+    photos = models.ImageField(upload_to='bids/%Y/%m/%d')
     create_ad = models.DateTimeField(auto_now_add=True, verbose_name="Дата создания")
 
     class Meta:

@@ -118,11 +118,7 @@ class MyBidsRetrieveAPIView(APIView):
                 {
                     'status': 'success',
                     'message': 'Ваши заявки успешно получены',
-                    'data': {
-                        'id': bids.pk,
-                        'username': bids.author.username,
-                        'photos': bids.photos
-                    }
+                    'data': list(bids)
                 },
                 status=status.HTTP_200_OK
             )

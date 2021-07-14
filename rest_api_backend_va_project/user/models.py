@@ -24,7 +24,7 @@ class User(AbstractUser):
     confirm_email = models.BooleanField(default=False)
     confirm_account = models.BooleanField(default=False)
     code_confirm = models.IntegerField(null=True, blank=True, unique=True)
-    subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, verbose_name='Подписка', null=True)
+    subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, verbose_name='Подписка', null=True, blank=True)
 
     class Meta:
         verbose_name = 'Пользователя'
