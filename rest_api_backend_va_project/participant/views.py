@@ -143,16 +143,14 @@ class ParticipantCreateView(generics.CreateAPIView):
                             photos=bid['photos']
                         )
 
+                        ad = Ad.objects.get(pk=ad_id)
+                        ad.participants.add(user)
+
                         print('participant --> ', participant)
                         room = Room.objects.get(ad__pk=ad_id)
                         room.invited.add(user)
 
                 check_user_bid.delete()
-
-                # # Количество участников добавляется в поле participant в объявлении
-                # count_participant = Participant.objects.filter(ad=my_ad).count()
-                # my_ad.participants = int(count_participant)
-                # my_ad.save()
 
                 return JsonResponse(
                     {
@@ -196,10 +194,7 @@ class ParticipantDestroyAPIView(generics.DestroyAPIView):
 
         if participant:
             participant.delete()
-            # # количество участников удаление из поле participant в объявлении
-            # count_participant = Participant.objects.filter(ad=my_ad).count()
-            # my_ad.participants = int(count_participant)
-            # my_ad.save()
+
             return JsonResponse(
                 {
                     'status': 'success',

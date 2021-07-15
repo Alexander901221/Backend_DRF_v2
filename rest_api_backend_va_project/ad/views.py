@@ -106,8 +106,9 @@ class AdCreateView(APIView):
 
         ad.participants.add(User.objects.get(pk=user.pk))
 
-        # Создание чата
+        # Create room, and add author in the room
         room = Room.objects.create(ad=ad)
+        room.invited.add(user)
 
         # WebSocket notification ("Объявление успешно созданно")
 

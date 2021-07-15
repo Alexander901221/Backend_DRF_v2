@@ -7,6 +7,8 @@ from .serializers import BidSerializer, CreateBidSerializer, MyBidsSerializer
 from ad.models import Ad
 from participant.models import Participant
 from loguru import logger
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 
 class BidRetrieveAPIView(APIView):
@@ -140,13 +142,23 @@ class BidRejected(generics.DestroyAPIView):
     @logger.catch
     def delete(self, request, *args, **kwargs):
         param = self.kwargs['pk']
-        bid = Bid.objects.filter(Q(pk=param) & Q(ad__author__pk=self.request.user.pk))
+        bid = Bid.objects.get(Q(pk=param) & Q(ad__author__pk=self.request.user.pk))
 
         if bid:
-            bid.delete()
             """
                 Уведомление user о том, что его заявку отклонили ( Websocket )
             """
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"user_{str(bid.author.pk)}", {
+                    "type": "user.gossip",
+                    "event": "Reject Bid",
+                    "message": f"Ваша заявка по объявлению {bid.ad.title} была отклоненна."
+                }
+            )
+
+            bid.delete()
+            
             return JsonResponse(
                 {
                     'status': 'success',

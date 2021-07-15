@@ -27,11 +27,6 @@ from channels.layers import get_channel_layer
 import json
 from .consumers import BidConsumer
 
-# def to_json(obj):
-#     return {
-#         'id': obj.pk,
-#         'photo': '/images/' + str(obj.photo)
-#     }
 
 #  Уведомление о создание и изменения объявления
 @receiver(pre_save, sender=Bid)
