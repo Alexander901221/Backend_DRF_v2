@@ -5,9 +5,8 @@ class AdConsumer(AsyncJsonWebsocketConsumer):
 
     async def connect(self):
         print('Connect (consumer - Ad)')
-        self.id_user = self.scope['url_route']['kwargs']['user']
-        self.ad_group_name = 'user_id_%s' % self.id_user
-        print('self.ad_group_name --> ', self.ad_group_name)
+        self.id_user = self.scope['url_route']['kwargs']['city']
+        self.ad_group_name = 'city_%s' % self.id_user
         await self.accept()
         await self.channel_layer.group_add(
             self.ad_group_name, 

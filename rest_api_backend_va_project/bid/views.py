@@ -111,7 +111,7 @@ class MyBidsRetrieveAPIView(APIView):
             .filter(Q(ad__author__pk=self.request.user.pk) & Q(ad__pk=id_ad)) \
             .select_related('author', 'ad__author', 'ad') \
             .annotate(username=F('author__username'), photo=F('author__photo'))\
-            .values('id', 'username', 'photos')
+            .values('id', 'username', 'photos', 'author__id')
         
         print('bids --> ', bids)
 

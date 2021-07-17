@@ -77,10 +77,12 @@ def on_change(sender, instance, **kwargs):
             if instance.is_published:
                 channel_layer = get_channel_layer()
                 async_to_sync(channel_layer.group_send)(
-                    f"user_id_{instance.author.pk}", {
+                    f"city_{instance.city}", {
                         "type": "ad",
                         "event": "Ad published",
                         "message": "Объявление было успешно опубликованно",
+                        "geolocation": previous.geolocation,
+                        "id_ad": previous.pk,
                         "ad": {
                             "id": previous.pk,
                             "title": previous.title,
