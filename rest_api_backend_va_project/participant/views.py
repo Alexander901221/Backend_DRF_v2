@@ -9,6 +9,8 @@ from user.models import User
 from loguru import logger
 from participant.models import Participant
 from room_chat.models import Room
+from asgiref.sync import async_to_sync
+from channels.layers import get_channel_layer
 
 
 class ParticipantRetrieveAPIView(generics.RetrieveAPIView):
@@ -190,9 +192,26 @@ class ParticipantDestroyAPIView(generics.DestroyAPIView):
 
         user = self.request.user.pk
         participant = Participant.objects.filter(Q(ad__author__pk=user) & Q(ad__pk=ad_id) & Q(pk=participant_id))
+        
         my_ad = Ad.objects.get(author__pk=user)
 
         if participant:
+            user_pk = Participant.objects.get(pk=participant_id)
+            user = User.objects.get(pk=user_pk.user.pk)
+            my_ad.participants.remove(user)
+            
+            room = Room.objects.get(ad__pk=ad_id)
+            room.invited.remove(user)
+
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                f"user_{str(user.pk)}", {
+                    "type": "user.gossip",
+                    "event": "Kick Out from the party",
+                    "message": f"Вас выгнали из вечеринки под названием {my_ad.title}."
+                }
+            )
+
             participant.delete()
 
             return JsonResponse(
