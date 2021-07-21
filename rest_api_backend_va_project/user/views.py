@@ -402,7 +402,7 @@ class MySubscriber(views.APIView):
     @logger.catch
     def get(self, request, *args, **kwargs):
         my_subscriber = Subscription.objects\
-            .filter(author__pk=request.user.pk)\
+            .filter(author_id=request.user.pk)\
             .values('date_start', 'date_end')
 
         if my_subscriber:

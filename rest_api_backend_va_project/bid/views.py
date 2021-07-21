@@ -22,12 +22,12 @@ class BidRetrieveAPIView(APIView):
         ad_id = self.kwargs['ad_pk']
         bid_id = self.kwargs['bid_pk']
 
-        ad = Bid.objects.filter(Q(ad__author__pk=request.user.pk) & Q(ad__pk=ad_id)).values('pk')
+        ad = Bid.objects.filter(Q(ad__author__pk=request.user.pk) & Q(ad_id=ad_id)).values('pk')
 
         bid = Bid.objects\
             .filter(Q(ad__author__pk=request.user.pk) & Q(pk=bid_id)) \
             .values(
-                'id', 'photos', 'create_ad', 'author__id', 'author__username', 'author__photo'
+                'id', 'photos', 'create_ad', 'author_id', 'author__username', 'author__photo'
             )
 
         if not ad:
@@ -69,8 +69,8 @@ class BidCreateView(views.APIView):
         data = self.request.data
 
         ad = Ad.objects.get(pk=data['id_ad'])
-        participant = Participant.objects.filter(Q(user=self.request.user) & Q(ad__pk=data['id_ad'])).values('pk')
-        check_bid = Bid.objects.filter(Q(author__pk=self.request.user.pk) & Q(ad__pk=data['id_ad'])).values('pk')
+        participant = Participant.objects.filter(Q(user=self.request.user) & Q(ad_id=data['id_ad'])).values('pk')
+        check_bid = Bid.objects.filter(Q(author_id=self.request.user.pk) & Q(ad_id=data['id_ad'])).values('pk')
 
         if check_bid or participant:
             return JsonResponse(
@@ -113,10 +113,10 @@ class MyBidsRetrieveAPIView(APIView):
     def get(self, request, *args, **kwargs):
         id_ad = self.kwargs['pk']
         bids = Bid.objects \
-            .filter(Q(ad__author__pk=self.request.user.pk) & Q(ad__pk=id_ad)) \
+            .filter(Q(ad__author__pk=self.request.user.pk) & Q(ad_id=id_ad)) \
             .select_related('author', 'ad__author', 'ad') \
             .annotate(username=F('author__username'), photo=F('author__photo'))\
-            .values('id', 'username', 'photos', 'author__id')
+            .values('id', 'username', 'photos', 'author_id')
 
         if bids:
             return JsonResponse(

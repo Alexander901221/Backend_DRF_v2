@@ -24,13 +24,13 @@ class ParticipantRetrieveAPIView(generics.RetrieveAPIView):
         ad_id = self.kwargs['ad_pk']
         participant_id = self.kwargs['participant_pk']
 
-        ad = Participant.objects.filter(Q(ad__author__pk=request.user.pk) & Q(ad__pk=ad_id)).values('pk')
+        ad = Participant.objects.filter(Q(ad__author__pk=request.user.pk) & Q(ad_id=ad_id)).values('pk')
 
         participant = Participant.objects \
             .filter(Q(ad__author__pk=request.user.pk) & Q(pk=participant_id)) \
             .values(
             'id', 'number_of_person', 'number_of_girls', 'number_of_boys', 'photos', 'create_ad',
-            'user__id', 'user__username', 'user__photo', 'user__sex'
+            'user_id', 'user__username', 'user__photo', 'user__sex'
         )
 
         if not ad:
@@ -84,7 +84,7 @@ class MyParticipantsListAPIView(APIView):
         ad_id = self.kwargs['pk']
 
         participant = Participant.objects \
-            .filter(Q(ad__author__pk=self.request.user.pk) & Q(ad__pk=ad_id))
+            .filter(Q(ad__author__pk=self.request.user.pk) & Q(ad_id=ad_id))
 
         participant_result = []
         for element in participant:
@@ -120,9 +120,9 @@ class ParticipantCreateView(generics.CreateAPIView):
         user_id = self.request.data['id_user']
         ad_id = self.request.data['id_ad']
 
-        my_ad = Ad.objects.get(Q(author__pk=self.request.user.pk) & Q(pk=ad_id))
+        my_ad = Ad.objects.get(Q(author_id=self.request.user.pk) & Q(pk=ad_id))
 
-        participant = Participant.objects.filter(user__pk=user_id)
+        participant = Participant.objects.filter(user_id=user_id)
 
         if participant:
             return JsonResponse(
@@ -135,13 +135,13 @@ class ParticipantCreateView(generics.CreateAPIView):
         if my_ad:
             user = User.objects.get(pk=user_id)
             check_user_bid = Bid.objects \
-                .filter(author__pk=user_id, ad__author__pk=self.request.user.pk)
+                .filter(author_id=user_id, ad__author__pk=self.request.user.pk)
 
             if check_user_bid:
                 for bid in check_user_bid.values('number_of_person', 'number_of_girls', 'number_of_boys', 'photos'):
 
                     participant = Participant.objects \
-                        .filter(Q(ad__author__pk=request.user.pk) & Q(ad__pk=ad_id) & Q(user=user_id))
+                        .filter(Q(ad__author__pk=request.user.pk) & Q(ad_id=ad_id) & Q(user_id=user_id))
                     if participant:
                         return JsonResponse(
                             {
@@ -188,7 +188,7 @@ class ParticipantCreateView(generics.CreateAPIView):
                         ad = Ad.objects.get(pk=ad_id)
                         ad.participants.add(user)
 
-                        room = Room.objects.get(ad__pk=ad_id)
+                        room = Room.objects.get(ad_id=ad_id)
                         room.invited.add(user)
 
                 check_user_bid.delete()
@@ -230,16 +230,16 @@ class ParticipantDestroyAPIView(generics.DestroyAPIView):
         participant_id = kwargs['participant_pk']
 
         user = self.request.user.pk
-        participant = Participant.objects.filter(Q(ad__author__pk=user) & Q(ad__pk=ad_id) & Q(pk=participant_id))
+        participant = Participant.objects.filter(Q(ad__author__pk=user) & Q(ad_id=ad_id) & Q(pk=participant_id))
 
-        my_ad = Ad.objects.get(author__pk=user)
+        my_ad = Ad.objects.get(author_id=user)
 
         if participant:
             user_pk = Participant.objects.get(pk=participant_id)
             user = User.objects.get(pk=user_pk.user.pk)
             my_ad.participants.remove(user)
 
-            room = Room.objects.get(ad__pk=ad_id)
+            room = Room.objects.get(ad_id=ad_id)
             room.invited.remove(user)
 
             channel_layer = get_channel_layer()

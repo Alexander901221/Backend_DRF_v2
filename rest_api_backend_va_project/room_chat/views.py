@@ -43,7 +43,7 @@ class Messages(APIView, PaginationHandlerMixin):
 
     @logger.catch
     def get(self, request, pk):
-        messages = Chat.objects.all().filter(Q(room__pk=pk) & Q(room__invited__pk=request.user.pk))
+        messages = Chat.objects.all().filter(Q(room_id=pk) & Q(room__invited__pk=request.user.pk))
         if messages:
             page = self.paginate_queryset(messages)
             if page is not None:
@@ -62,7 +62,7 @@ class Messages(APIView, PaginationHandlerMixin):
 
 
 def room(request, room_name):
-    messages = Chat.objects.order_by('-date').filter(room__pk=room_name)[:10]
+    messages = Chat.objects.order_by('-date').filter(room_id=room_name)[:10]
     return render(request, 'chat/room.html', {
         'room_name': room_name,
         'messages': messages

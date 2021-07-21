@@ -84,7 +84,7 @@ class AdCreateView(APIView):
         data = request.data
         user = request.user
 
-        author_ad = Ad.objects.filter(author__pk=user.pk).values('pk')
+        author_ad = Ad.objects.filter(author_id=user.pk).values('pk')
         if author_ad:
             return JsonResponse(
                 {
@@ -133,7 +133,7 @@ class AdUpdateView(generics.UpdateAPIView):
     def put(self, request, *args, **kwargs):
         data = JSONParser().parse(request)
         param = kwargs['pk']
-        ad = Ad.objects.filter(Q(pk=param) | Q(author__pk=request.user.pk))
+        ad = Ad.objects.filter(Q(pk=param) | Q(author_id=request.user.pk))
 
         if ad.exists():
             ad.update(
@@ -183,7 +183,7 @@ class AdDestroyAPIView(generics.DestroyAPIView):
     def destroy(self, request, *args, **kwargs):
         param = kwargs['pk']
 
-        ad = Ad.objects.filter(Q(pk=param) & Q(author__pk=request.user.pk))
+        ad = Ad.objects.filter(Q(pk=param) & Q(author_id=request.user.pk))
 
         if ad.exists():
             ad.delete()
@@ -215,7 +215,7 @@ class MyAdsListAPIView(generics.ListAPIView):
     def get_queryset(self):
         return Ad.custom_manager.custom_order_by('party_date') \
             .defer("create_ad", "author__password") \
-            .filter(author__pk=self.request.user.pk)
+            .filter(author_id=self.request.user.pk)
 
 
 # Notification
