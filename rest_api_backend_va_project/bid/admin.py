@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Bid
+from .models import Bid, BidImages
+from django.utils.safestring import mark_safe
 
 
 class BidAdmin(admin.ModelAdmin):
@@ -8,4 +9,24 @@ class BidAdmin(admin.ModelAdmin):
     pass
 
 
+class BidImagesAdmin(admin.ModelAdmin):
+    list_display = ("photo_participants", "get_photo_participants", "photo_alcohol", "get_photo_alcohol")
+
+    def get_photo_participants(self, obj):
+        if obj.photo_participants:
+            return mark_safe(f'<img src={obj.photo_participants.url} width="200" height="200"')
+        else:
+            return mark_safe(f'<img src="" alt="" width="100" height="100"')
+
+    get_photo_participants.short_description = "Изображение"
+
+    def get_photo_alcohol(self, obj):
+        if obj.photo_alcohol:
+            return mark_safe(f'<img src={obj.photo_alcohol.url} width="200" height="200"')
+        else:
+            return mark_safe(f'<img src="" alt="" width="100" height="100"')
+
+    get_photo_alcohol.short_description = "Изображение"
+
 admin.site.register(Bid, BidAdmin)
+admin.site.register(BidImages, BidImagesAdmin)

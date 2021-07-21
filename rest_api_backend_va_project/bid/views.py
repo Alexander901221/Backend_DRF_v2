@@ -2,7 +2,7 @@ from rest_framework import generics, status, views
 from django.http import JsonResponse
 from django.db.models import Q, F
 from rest_framework.views import APIView
-from .models import Bid
+from .models import Bid, BidImages
 from .serializers import BidSerializer, CreateBidSerializer, MyBidsSerializer
 from ad.models import Ad
 from participant.models import Participant
@@ -82,13 +82,18 @@ class BidCreateView(views.APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
         else:
+            photos = BidImages.objects.create(
+                photo_participants=data['photo_participants'],
+                photo_alcohol=data['photo_alcohol']
+            )
+            
             check_bid.create(
                 author=self.request.user,
                 ad=ad,
                 number_of_person=data['number_of_person'],
                 number_of_girls=data['number_of_girls'],
                 number_of_boys=data['number_of_boys'],
-                photos=data['photos']
+                photos=photos
             )
 
             return JsonResponse(
@@ -158,7 +163,8 @@ class BidRejected(generics.DestroyAPIView):
             )
 
             bid.delete()
-            
+            bid.photos.delete()
+
             return JsonResponse(
                 {
                     'status': 'success',
