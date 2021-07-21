@@ -161,10 +161,34 @@ class ParticipantCreateView(generics.CreateAPIView):
                             photos=bid['photos']
                         )
 
+                        #  Уведомление об успешном одобреннии заявки
+                        channel_layer = get_channel_layer()
+                        async_to_sync(channel_layer.group_send)(
+                            f"user_{str(participant.user.pk)}", {
+                                "type": "user.gossip",
+                                "event": "Add in the participants",
+                                "message": f"Ваша заявка по объявлению {participant.ad.title} была успешно одобренна.",
+                                "id_ad": participant.ad.pk,
+                                "participant_id": participant.pk,
+                                "participant": {
+                                    "user": {
+                                        "id": participant.user.pk,
+                                        "username": participant.user.username,
+                                        "photo": '/images/' + str(participant.user.photo)
+                                    },
+                                    "information_about_bid": {
+                                        "number_of_person": participant.number_of_person,
+                                        "number_of_girls": participant.number_of_girls,
+                                        "number_of_boys": participant.number_of_boys,
+                                        "photos": '/images/' + str(participant.photos)
+                                    }
+                                }
+                            }
+                        )
+
                         ad = Ad.objects.get(pk=ad_id)
                         ad.participants.add(user)
 
-                        print('participant --> ', participant)
                         room = Room.objects.get(ad__pk=ad_id)
                         room.invited.add(user)
 

@@ -16,37 +16,3 @@ class Participant(models.Model):
     class Meta:
         verbose_name = 'Участник'
         verbose_name_plural = 'Участники'
-
-
-from django.db.models.signals import pre_save
-from django.dispatch import receiver
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
-import json
-
-
-#  Уведомление об успешном одобреннии заявки
-@receiver(pre_save, sender=Participant)
-def on_change(sender, instance, **kwargs):
-    if instance.id is None: # Add in the participants
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-        f"user_{str(instance.user.pk)}", {
-            "type": "user.gossip",
-            "event": "Add in the participants",
-            "message": f"Ваша заявка по объявлению {instance.ad.title} была успешно одобренна.",
-            "participant": {
-                "user": {
-                    "id": instance.user.pk,
-                    "username": instance.user.username,
-                    "photo": '/images/' + str(instance.user.photo)
-                },
-                "information_about_bid": {
-                    "number_of_person": instance.number_of_person,
-                    "number_of_girls": instance.number_of_girls,
-                    "number_of_boys": instance.number_of_boys,
-                    "photos": '/images/' + str(instance.photos)
-                }
-            }
-        }
-    )
