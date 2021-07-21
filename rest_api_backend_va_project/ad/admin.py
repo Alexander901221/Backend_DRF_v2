@@ -13,7 +13,7 @@ class AdAdmin(admin.ModelAdmin):
     )
     list_filter = ('city', 'party_date', 'is_published')
 
-    readonly_fields = ('title', 'author', 'city', 'number_of_person', 'number_of_girls', 'number_of_boys', 'party_date', 'geolocation', 'create_ad',)
+    readonly_fields = ('title', 'author', 'city', 'number_of_person', 'number_of_girls', 'number_of_boys', 'party_date', 'geolocation', 'participants', 'create_ad',)
 
     actions = (make_published,)
 
