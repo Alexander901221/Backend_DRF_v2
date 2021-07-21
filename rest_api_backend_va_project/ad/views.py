@@ -10,12 +10,13 @@ from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser
 from loguru import logger
 import json
+from utils.permissions.permissions import EmailIsVerified, AccountIsVerified
 
 
 class AdListView(generics.ListAPIView):
     """Get all ads (GET)"""
     serializer_class = GetAllAdsForMap
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [EmailIsVerified]
 
     @logger.catch
     def get_queryset(self):
@@ -34,7 +35,7 @@ def to_json(obj):
 class AdRetrieveAPIView(generics.ListAPIView):
     """Getting ad by param (GET)"""
     serializer_class = AdSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [EmailIsVerified]
     
     def get(self, request, *args, **kwargs):
         ad = Ad.custom_manager.custom_filter().get(id=kwargs['pk'], city=self.request.user.city)
@@ -76,7 +77,7 @@ class AdRetrieveAPIView(generics.ListAPIView):
 
 class AdCreateView(APIView):
     """Create ad (post)"""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [AccountIsVerified]
 
     @logger.catch
     def post(self, request):
@@ -125,7 +126,7 @@ class AdCreateView(APIView):
 class AdUpdateView(generics.UpdateAPIView):
     """Update ad"""
     serializer_class = UpdateAdSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [AccountIsVerified]
     queryset = Ad.objects.all().select_related('author')
 
     @logger.catch
@@ -176,7 +177,7 @@ class AdDestroyAPIView(generics.DestroyAPIView):
     """Delete ad"""
     serializer_class = CreateAdSerializer
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [AccountIsVerified]
 
     @logger.catch
     def destroy(self, request, *args, **kwargs):
@@ -208,7 +209,7 @@ class MyAdsListAPIView(generics.ListAPIView):
     """Get my ads"""
     serializer_class = GetMyDataSerializer
 
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [AccountIsVerified]
 
     @logger.catch
     def get_queryset(self):

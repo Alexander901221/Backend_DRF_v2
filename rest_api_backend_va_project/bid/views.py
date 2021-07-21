@@ -9,12 +9,13 @@ from participant.models import Participant
 from loguru import logger
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from utils.permissions.permissions import EmailIsVerified, AccountIsVerified
 
 
 class BidRetrieveAPIView(APIView):
     """Get bid for pk"""
     serializer_class = BidSerializer
-    # permission_classes = []
+    permission_classes = [AccountIsVerified]
 
     @logger.catch
     def get(self, request, *args, **kwargs):
@@ -63,7 +64,7 @@ class BidRetrieveAPIView(APIView):
 class BidCreateView(views.APIView):
     """Create bid"""
     serializer_class = CreateBidSerializer
-    # permission_classes = []
+    permission_classes = [AccountIsVerified]
 
     @logger.catch
     def post(self, request, *args, **kwargs):
@@ -108,6 +109,7 @@ class BidCreateView(views.APIView):
 class MyBidsRetrieveAPIView(APIView):
     """Get all my bids for ad"""
     serializer_class = MyBidsSerializer
+    permission_classes = [AccountIsVerified]
 
     @logger.catch
     def get(self, request, *args, **kwargs):
@@ -142,7 +144,7 @@ class MyBidsRetrieveAPIView(APIView):
 class BidRejected(generics.DestroyAPIView):
     """Rejected bid"""
     serializer_class = BidSerializer
-    # permission_classes = []
+    permission_classes = [AccountIsVerified]
 
     @logger.catch
     def delete(self, request, *args, **kwargs):

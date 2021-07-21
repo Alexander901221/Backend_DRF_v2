@@ -11,12 +11,13 @@ from participant.models import Participant
 from room_chat.models import Room
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from utils.permissions.permissions import EmailIsVerified, AccountIsVerified
 
 
 class ParticipantRetrieveAPIView(generics.RetrieveAPIView):
     """Get participant for ad and bid"""
     serializer_class = ParticipantSerializer
-    permission_classes = []
+    permission_classes = [AccountIsVerified]
 
     @logger.catch
     def get(self, request, *args, **kwargs):
@@ -76,7 +77,7 @@ def to_json(obj):
 class MyParticipantsListAPIView(APIView):
     """Get all my participants"""
     serializer_class = ParticipantSerializer
-    permission_classes = []
+    permission_classes = [AccountIsVerified]
 
     @logger.catch
     def get(self, request, *args, **kwargs):
@@ -114,7 +115,7 @@ class MyParticipantsListAPIView(APIView):
 class ParticipantCreateView(generics.CreateAPIView):
     """Add participant"""
     serializer_class = ParticipantSerializer
-    permission_classes = []
+    permission_classes = [AccountIsVerified]
 
     @logger.catch
     def post(self, request, *args, **kwargs):
@@ -222,7 +223,7 @@ class ParticipantCreateView(generics.CreateAPIView):
 class ParticipantDestroyAPIView(generics.DestroyAPIView):
     """Reject participant"""
     serializer_class = ParticipantSerializer
-    permission_classes = []
+    permission_classes = [AccountIsVerified]
     queryset = Participant.objects.all()
 
     @logger.catch

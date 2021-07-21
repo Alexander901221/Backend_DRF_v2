@@ -15,6 +15,7 @@ from utils.optimization_photo.optimization_photo import optimization_photo
 from utils.format_images.format_images import check_uploaded_image_format
 from django.contrib.auth.hashers import check_password, make_password
 from loguru import logger
+from utils.permissions.permissions import EmailIsVerified, AccountIsVerified
 
 
 class UserListView(generics.ListAPIView):
@@ -46,7 +47,7 @@ class UserRetrieveAPIView(generics.RetrieveAPIView):
 class UserUpdateData(generics.UpdateAPIView):
     """Change data about me"""
     serializer_class = UpdateUserSerializers
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [EmailIsVerified]
     parser_classes = (MultiPartParser, FormParser)
     queryset = User.objects.all()
 
@@ -375,7 +376,7 @@ class ChangePasswordView(generics.UpdateAPIView):
 class GetDataAboutMe(generics.ListAPIView):
     """Get data about me"""
     serializer_class = GetMeSerializer
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [EmailIsVerified]
 
     @logger.catch
     def get_queryset(self):
@@ -387,14 +388,14 @@ class GetDataAboutMe(generics.ListAPIView):
 class SubscriptionAPIView(generics.ListAPIView):
     """Get all subscriptions"""
     serializer_class = SubscriptionSerializer
-    permission_classes = []
+    permission_classes = [AccountIsVerified]
     queryset = Subscription.objects.all()
 
 
 class MySubscriber(views.APIView):
     """Get my subscription"""
     serializer_class = SubscriptionSerializer
-    permission_classes = []
+    permission_classes = [AccountIsVerified]
 
     def get(self, request, *args, **kwargs):
         my_subscriber = Subscription.objects\

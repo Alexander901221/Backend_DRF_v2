@@ -8,6 +8,8 @@ from .models import Room, Chat
 from django.http import JsonResponse
 from rest_framework.pagination import PageNumberPagination
 from utils.mixins.pagination import PaginationHandlerMixin
+from utils.permissions.permissions import EmailIsVerified, AccountIsVerified
+
 
 
 class BasicPagination(PageNumberPagination):
@@ -16,7 +18,7 @@ class BasicPagination(PageNumberPagination):
 
 class MyRooms(APIView):
     """Get all my rooms where i participant"""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [AccountIsVerified]
 
     def get(self, request):
         rooms = Room.objects.all().filter(invited__pk=request.user.pk)
@@ -35,7 +37,7 @@ class MyRooms(APIView):
 
 class Messages(APIView, PaginationHandlerMixin):
     """Get all messages for room"""
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [AccountIsVerified]
     pagination_class = BasicPagination
 
     def get(self, request, pk):
