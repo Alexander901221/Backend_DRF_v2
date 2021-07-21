@@ -20,7 +20,6 @@ class AdListView(generics.ListAPIView):
 
     @logger.catch
     def get_queryset(self):
-        print('self.request.user --> ', self.request.user.city)
         return Ad.custom_manager\
             .custom_filter(city=self.request.user.city)\
             .only('id', 'geolocation')
@@ -37,6 +36,7 @@ class AdRetrieveAPIView(generics.ListAPIView):
     serializer_class = AdSerializer
     permission_classes = [EmailIsVerified]
     
+    @logger.catch
     def get(self, request, *args, **kwargs):
         ad = Ad.custom_manager.custom_filter().get(id=kwargs['pk'], city=self.request.user.city)
 

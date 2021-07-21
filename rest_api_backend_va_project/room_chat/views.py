@@ -9,7 +9,7 @@ from django.http import JsonResponse
 from rest_framework.pagination import PageNumberPagination
 from utils.mixins.pagination import PaginationHandlerMixin
 from utils.permissions.permissions import EmailIsVerified, AccountIsVerified
-
+from loguru import logger
 
 
 class BasicPagination(PageNumberPagination):
@@ -20,6 +20,7 @@ class MyRooms(APIView):
     """Get all my rooms where i participant"""
     permission_classes = [AccountIsVerified]
 
+    @logger.catch
     def get(self, request):
         rooms = Room.objects.all().filter(invited__pk=request.user.pk)
         if rooms:
@@ -40,6 +41,7 @@ class Messages(APIView, PaginationHandlerMixin):
     permission_classes = [AccountIsVerified]
     pagination_class = BasicPagination
 
+    @logger.catch
     def get(self, request, pk):
         messages = Chat.objects.all().filter(Q(room__pk=pk) & Q(room__invited__pk=request.user.pk))
         if messages:
@@ -61,7 +63,6 @@ class Messages(APIView, PaginationHandlerMixin):
 
 def room(request, room_name):
     messages = Chat.objects.order_by('-date').filter(room__pk=room_name)[:10]
-    print('messages (room) -> ', messages)
     return render(request, 'chat/room.html', {
         'room_name': room_name,
         'messages': messages
@@ -70,7 +71,6 @@ def room(request, room_name):
 
 def get_my_rooms_2(request):
     rooms = Room.objects.filter(invited__pk=request.user.pk).values('pk')
-    print('rooms (index) --> ', rooms)
 
     return JsonResponse(
         {

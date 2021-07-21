@@ -91,8 +91,6 @@ class MyParticipantsListAPIView(APIView):
             result = to_json(element)
             participant_result.append(result)
 
-        print('participant_result -> ', participant_result)
-
         if participant.exists():
             return JsonResponse(
                 {

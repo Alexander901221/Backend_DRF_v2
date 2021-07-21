@@ -43,8 +43,6 @@ from channels.layers import get_channel_layer
 #  Уведомление о создание и изменения пользователя
 @receiver(pre_save, sender=User)
 def on_change(sender, instance: User, **kwargs):
-    print('instance -> ', instance)  # User который изменяет свои данные
-    print('sender -> ', sender)
 
     if instance.id is None: # создание нового user
         channel_layer = get_channel_layer()

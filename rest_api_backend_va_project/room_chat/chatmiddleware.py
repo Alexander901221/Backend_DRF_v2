@@ -13,7 +13,6 @@ from rest_framework_simplejwt.state import User
 def get_user(validated_token):
     try:
         return JWTTokenUserAuthentication().get_user(validated_token=validated_token)
-        print("Got the user")
     except User.DoesNotExist:
         return AnonymousUser()
 
@@ -24,7 +23,6 @@ class JwtAuthMiddleware(BaseMiddleware):
 
     async def __call__(self, scope, receive, send):
         query = dict((x.split("=") for x in scope["query_string"].decode().split("&")))
-        print("the Token is here in the server")
         validated_token = JWTTokenUserAuthentication().get_validated_token(
             raw_token=query.get("token")
         )

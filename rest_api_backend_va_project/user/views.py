@@ -123,7 +123,6 @@ class RegisterView(views.APIView):
 
     @logger.catch
     def post(self, request):
-        print('!SSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSDASDASDASDa')
         try:
             data = request.data
             check_email_exist = User.objects.filter(email=data['email']).exists()
@@ -389,7 +388,10 @@ class SubscriptionAPIView(generics.ListAPIView):
     """Get all subscriptions"""
     serializer_class = SubscriptionSerializer
     permission_classes = [AccountIsVerified]
-    queryset = Subscription.objects.all()
+
+    @logger.catch
+    def get_queryset(self):
+        return Subscription.objects.all()
 
 
 class MySubscriber(views.APIView):
@@ -397,6 +399,7 @@ class MySubscriber(views.APIView):
     serializer_class = SubscriptionSerializer
     permission_classes = [AccountIsVerified]
 
+    @logger.catch
     def get(self, request, *args, **kwargs):
         my_subscriber = Subscription.objects\
             .filter(author__pk=request.user.pk)\

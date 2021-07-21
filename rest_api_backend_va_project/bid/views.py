@@ -20,9 +20,7 @@ class BidRetrieveAPIView(APIView):
     @logger.catch
     def get(self, request, *args, **kwargs):
         ad_id = self.kwargs['ad_pk']
-        print('ad_id --> ', ad_id)
         bid_id = self.kwargs['bid_pk']
-        print('bid_id --> ', bid_id)
 
         ad = Bid.objects.filter(Q(ad__author__pk=request.user.pk) & Q(ad__pk=ad_id)).values('pk')
 
@@ -119,8 +117,6 @@ class MyBidsRetrieveAPIView(APIView):
             .select_related('author', 'ad__author', 'ad') \
             .annotate(username=F('author__username'), photo=F('author__photo'))\
             .values('id', 'username', 'photos', 'author__id')
-        
-        print('bids --> ', bids)
 
         if bids:
             return JsonResponse(

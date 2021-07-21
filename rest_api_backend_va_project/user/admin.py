@@ -9,7 +9,6 @@ class UserAdmin(admin.ModelAdmin):
     list_filter = ("date_joined", "is_superuser")
 
     def get_readonly_fields(self, request, obj=None):
-        print('1')
         if request.user.is_superuser:
             return []
         else:
@@ -21,7 +20,6 @@ class UserAdmin(admin.ModelAdmin):
 
     def get_image(self, obj):
         if obj.photo:
-            print('obj.photo.url ==> ', obj.photo.url)
             return mark_safe(f'<img src={obj.photo.url} width="100" height="110"')
         else:
             return mark_safe(f'<img src="" alt="" width="100" height="110"')
