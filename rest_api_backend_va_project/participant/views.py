@@ -61,6 +61,18 @@ class ParticipantRetrieveAPIView(generics.RetrieveAPIView):
             )
 
 
+def to_json(obj):
+    return {
+        "id_ad": obj.ad.pk,
+        "participant_id": obj.pk,
+        "user": {
+            "id": obj.user.pk,
+            "username": obj.user.username,
+            "photo": '/images/' + str(obj.user.photo)
+        }
+    }
+
+
 class MyParticipantsListAPIView(APIView):
     """Get all my participants"""
     serializer_class = ParticipantSerializer
@@ -71,17 +83,21 @@ class MyParticipantsListAPIView(APIView):
         ad_id = self.kwargs['pk']
 
         participant = Participant.objects \
-            .filter(Q(ad__author__pk=self.request.user.pk) & Q(ad__pk=ad_id)) \
-            .values(
-            'id', 'number_of_person', 'number_of_girls', 'number_of_boys', 'photos', 'create_ad',
-            'user__id', 'user__username', 'user__photo', 'user__sex'
-        )
+            .filter(Q(ad__author__pk=self.request.user.pk) & Q(ad__pk=ad_id))
+
+        participant_result = []
+        for element in participant:
+            result = to_json(element)
+            participant_result.append(result)
+
+        print('participant_result -> ', participant_result)
+
         if participant.exists():
             return JsonResponse(
                 {
                     'status': "success",
                     'message': "Ваша заявка успешно полученна",
-                    'data': list(participant)
+                    'data': participant_result
                 },
                 status=status.HTTP_200_OK
             )
@@ -125,7 +141,7 @@ class ParticipantCreateView(generics.CreateAPIView):
             if check_user_bid:
                 for bid in check_user_bid.values('number_of_person', 'number_of_girls', 'number_of_boys', 'photos'):
 
-                    participant = Participant.objects\
+                    participant = Participant.objects \
                         .filter(Q(ad__author__pk=request.user.pk) & Q(ad__pk=ad_id) & Q(user=user_id))
                     if participant:
                         return JsonResponse(
@@ -192,14 +208,14 @@ class ParticipantDestroyAPIView(generics.DestroyAPIView):
 
         user = self.request.user.pk
         participant = Participant.objects.filter(Q(ad__author__pk=user) & Q(ad__pk=ad_id) & Q(pk=participant_id))
-        
+
         my_ad = Ad.objects.get(author__pk=user)
 
         if participant:
             user_pk = Participant.objects.get(pk=participant_id)
             user = User.objects.get(pk=user_pk.user.pk)
             my_ad.participants.remove(user)
-            
+
             room = Room.objects.get(ad__pk=ad_id)
             room.invited.remove(user)
 
