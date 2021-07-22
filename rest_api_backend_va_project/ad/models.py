@@ -1,7 +1,7 @@
+import json
 from django.db import models
 
 from user.models import User
-
 from utils.choices.choices import CITIES
 
 
@@ -29,72 +29,37 @@ class Ad(models.Model):
     is_published = models.BooleanField(default=False, verbose_name="Опубликовано")
     create_ad = models.DateTimeField(auto_now_add=True, verbose_name="Дата добавления")
 
+    def __str__(self):
+        return self.title
+    
+    def to_json(self):
+        def participants_to_json(obj):
+            return {
+                'id': obj.pk,
+                'photo': '/images/' + str(obj.photo)
+            }
+        
+        participant = []
+        for element in self.participants.all():
+            result = participants_to_json(element)
+            participant.append(result)
+
+        return {
+            "id": self.pk,
+            "title": self.title,
+            "author": {
+                "id": self.author.pk,
+                "photo": '/images/' + str(self.author.photo)
+            },
+            "number_of_person": self.number_of_person,
+            "number_of_girls": self.number_of_girls,
+            "number_of_boys": self.number_of_boys,
+            "party_date": json.dumps(self.party_date, indent=4, sort_keys=True, default=str),
+            "participants": participant,
+        }
     class Meta:
         verbose_name = 'Объявление'
         verbose_name_plural = 'Объявления'
 
-    def __str__(self):
-        return self.title
-
     objects = models.Manager()
     custom_manager = MyManager()
-
-
-from django.db.models.signals import pre_save, post_save, pre_delete, post_delete
-from django.dispatch import receiver
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
-import json
-
-def to_json(obj):
-    return {
-        'id': obj.pk,
-        'photo': '/images/' + str(obj.photo)
-    }
-
-#  Уведомление о создание и изменения объявления
-@receiver(pre_save, sender=Ad)
-def on_change(sender, instance, **kwargs):
-
-    if instance.id is None: # Create a new ad
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            f"user_id_{instance.author.pk}", {
-                "type": "ad",
-                "event": "Create ad",
-                "username": instance.author.username,
-                "ad_title": instance.title
-            }
-        )
-    else:
-        previous = Ad.objects.get(id=instance.id)
-        participant = []
-        for element in previous.participants.all():
-            result = to_json(element)
-            participant.append(result)
-        
-        if previous.is_published != instance.is_published: # check on change field
-            if instance.is_published:
-                channel_layer = get_channel_layer()
-                async_to_sync(channel_layer.group_send)(
-                    f"city_{instance.city}", {
-                        "type": "ad",
-                        "event": "Ad published",
-                        "message": "Объявление было успешно опубликованно",
-                        "geolocation": previous.geolocation,
-                        "id_ad": previous.pk,
-                        "ad": {
-                            "id": previous.pk,
-                            "title": previous.title,
-                            "author": {
-                                "id": previous.author.pk,
-                                "photo": '/images/' + str(previous.author.photo)
-                            },                        
-                            "number_of_person": previous.number_of_person,
-                            "number_of_girls": previous.number_of_girls,
-                            "number_of_boys": previous.number_of_boys,
-                            "party_date": json.dumps(previous.party_date, indent=4, sort_keys=True, default=str),
-                            "participants": participant,
-                        }
-                    }
-                )

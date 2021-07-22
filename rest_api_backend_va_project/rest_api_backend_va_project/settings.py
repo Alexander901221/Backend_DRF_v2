@@ -64,6 +64,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    # My middlewares
+    'core.middleware.middleware.UpdateLastActivityMiddleware'
 ]
 
 REST_FRAMEWORK = {

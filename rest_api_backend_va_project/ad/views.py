@@ -24,13 +24,6 @@ class AdListView(generics.ListAPIView):
             .custom_filter(city=self.request.user.city)\
             .only('id', 'geolocation')
 
-
-def to_json(obj):
-    return {
-        'id': obj.pk,
-        'photo': '/images/' + str(obj.photo)
-    }
-
 class AdRetrieveAPIView(generics.ListAPIView):
     """Getting ad by param (GET)"""
     serializer_class = AdSerializer
@@ -40,28 +33,11 @@ class AdRetrieveAPIView(generics.ListAPIView):
     def get(self, request, *args, **kwargs):
         ad = Ad.custom_manager.custom_filter().get(id=kwargs['pk'], city=self.request.user.city)
 
-        participant = []
-        for element in ad.participants.all():
-            result = to_json(element)
-            participant.append(result)
-
         if ad:
             return JsonResponse(
                     {
                         'status': 'success',
-                        "ad": {
-                            "id": ad.pk,
-                            "title": ad.title,
-                            "author": {
-                                "id": ad.author.pk,
-                                "photo": '/images/' + str(ad.author.photo)
-                            },                        
-                            "number_of_person": ad.number_of_person,
-                            "number_of_girls": ad.number_of_girls,
-                            "number_of_boys": ad.number_of_boys,
-                            "party_date": json.dumps(ad.party_date, indent=4, sort_keys=True, default=str),
-                            "participants": participant,
-                        }
+                        "ad": ad.to_json()
                     },
                     status=status.HTTP_200_OK
             )

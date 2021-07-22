@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+from django.utils.timezone import now
 
 from utils.choices.choices import CITIES, SEX
 
@@ -25,67 +26,10 @@ class User(AbstractUser):
     confirm_account = models.BooleanField(default=False)
     code_confirm = models.IntegerField(null=True, blank=True, unique=True)
     subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, verbose_name='Подписка', null=True, blank=True)
-
+    last_activity = models.DateTimeField(default=now(),verbose_name="Последний раз в сети")
     class Meta:
         verbose_name = 'Пользователя'
         verbose_name_plural = 'Пользователи'
 
     def __str__(self):
         return self.first_name
-
-
-from django.db.models.signals import pre_save, post_save, pre_delete, post_delete
-from django.dispatch import receiver
-from asgiref.sync import async_to_sync
-from channels.layers import get_channel_layer
-
-
-#  Уведомление о создание и изменения пользователя
-@receiver(pre_save, sender=User)
-def on_change(sender, instance: User, **kwargs):
-
-    if instance.id is None: # создание нового user
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            f"user_{str(instance.pk)}", {
-                "type": "user.gossip",
-                "event": "New User",
-                "username": instance.username
-            }
-        )
-    else:
-        previous = User.objects.get(id=instance.id)
-        if previous.confirm_account != instance.confirm_account: # поле было измененно
-            if instance.confirm_account:
-                channel_layer = get_channel_layer()
-                async_to_sync(channel_layer.group_send)(
-                    f"user_{str(instance.pk)}", {
-                        "type": "user.gossip",
-                        "event": "Success confirm account",
-                        "username": instance.username,
-                        "message": "Ваш аккаунт успешно подтвержден"
-                    }
-                )
-            else:
-                channel_layer = get_channel_layer()
-                async_to_sync(channel_layer.group_send)(
-                    f"user_{str(instance.pk)}", {
-                        "type": "user.gossip",
-                        "event": "Error confirm account",
-                        "username": instance.username,
-                        "message": "Ваш аккаунт не подтвержден"
-                    }
-                )
-
-
-# #  Уведомление о удаление пользователя
-# @receiver(pre_delete, sender=User)
-# def announce_new_user2(sender, instance, **kwargs):
-#     channel_layer = get_channel_layer()
-#     async_to_sync(channel_layer.group_send)(
-#         f"user_{str(instance.pk)}", {
-#             "type": "user.gossip",
-#             "event": "Delete User",
-#             "username": instance.username
-#         }
-#     )
