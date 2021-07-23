@@ -1,12 +1,12 @@
 from django.contrib import admin
-from .models import Bid, BidImages
 from django.utils.safestring import mark_safe
+
+from .models import Bid, BidImages
 
 
 class BidAdmin(admin.ModelAdmin):
     list_display = ("author", "ad", "number_of_person", 'number_of_girls', 'number_of_boys', 'create_ad')
     list_filter = ("ad__title", "create_ad")
-    pass
 
 
 class BidImagesAdmin(admin.ModelAdmin):
@@ -27,6 +27,7 @@ class BidImagesAdmin(admin.ModelAdmin):
             return mark_safe(f'<img src="" alt="" width="100" height="100"')
 
     get_photo_alcohol.short_description = "Изображение"
+
 
 admin.site.register(Bid, BidAdmin)
 admin.site.register(BidImages, BidImagesAdmin)

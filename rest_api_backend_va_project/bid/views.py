@@ -1,15 +1,16 @@
-from rest_framework import generics, status, views
+from loguru import logger
 from django.http import JsonResponse
 from django.db.models import Q, F
+from rest_framework import generics, status, views
 from rest_framework.views import APIView
-from .models import Bid, BidImages
-from .serializers import BidSerializer, CreateBidSerializer, MyBidsSerializer
-from ad.models import Ad
-from participant.models import Participant
-from loguru import logger
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from utils.permissions.permissions import EmailIsVerified, AccountIsVerified
+
+from .serializers import *
+from .models import Bid, BidImages
+from ad.models import Ad
+from participant.models import Participant
+from utils.permissions.permissions import AccountIsVerified
 
 
 class BidRetrieveAPIView(APIView):
@@ -24,11 +25,11 @@ class BidRetrieveAPIView(APIView):
 
         ad = Bid.objects.filter(Q(ad__author__pk=request.user.pk) & Q(ad_id=ad_id)).values('pk')
 
-        bid = Bid.objects\
+        bid = Bid.objects \
             .filter(Q(ad__author__pk=request.user.pk) & Q(pk=bid_id)) \
             .values(
-                'id', 'photos', 'create_ad', 'author_id', 'author__username', 'author__photo'
-            )
+            'id', 'photos', 'create_ad', 'author_id', 'author__username', 'author__photo'
+        )
 
         if not ad:
             return JsonResponse(
@@ -85,7 +86,7 @@ class BidCreateView(views.APIView):
                 photo_participants=data['photo_participants'],
                 photo_alcohol=data['photo_alcohol']
             )
-            
+
             check_bid.create(
                 author=self.request.user,
                 ad=ad,
@@ -115,7 +116,7 @@ class MyBidsRetrieveAPIView(APIView):
         bids = Bid.objects \
             .filter(Q(ad__author__pk=self.request.user.pk) & Q(ad_id=id_ad)) \
             .select_related('author', 'ad__author', 'ad') \
-            .annotate(username=F('author__username'), photo_user=F('author__photo'))\
+            .annotate(username=F('author__username'), photo_user=F('author__photo')) \
             .values('id', 'username', 'photo_user', 'photos__photo_participants', 'photos__photo_alcohol', 'author_id')
 
         if bids:
@@ -167,7 +168,7 @@ class BidRejected(generics.DestroyAPIView):
                 {
                     'status': 'success',
                     'message': 'Данная заявка успешно отклонена'
-                 },
+                },
                 status=status.HTTP_200_OK
             )
         else:
@@ -181,6 +182,8 @@ class BidRejected(generics.DestroyAPIView):
 
 
 from django.views.generic import TemplateView
+
+
 class BidView(TemplateView):
     template_name = "bid.html"
 

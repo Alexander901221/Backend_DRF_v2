@@ -1,4 +1,5 @@
 from django.db import models
+
 from user.models import User
 from ad.models import Ad
 
@@ -14,7 +15,7 @@ class Bid(models.Model):
 
     def __str__(self):
         return f'{self.pk}'
-    
+
     def to_json(self):
         return {
             "ad": {
@@ -28,6 +29,7 @@ class Bid(models.Model):
                 "photo": '/images/' + str(self.author.photo),
             }
         }
+
     class Meta:
         verbose_name = 'Заявка'
         verbose_name_plural = 'Заявки'
@@ -39,6 +41,7 @@ class BidImages(models.Model):
 
     def __str__(self):
         return 'Фотографии'
+
     class Meta:
         verbose_name = 'Фотография'
         verbose_name_plural = 'Фотографии'

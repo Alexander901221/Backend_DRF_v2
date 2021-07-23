@@ -2,7 +2,7 @@ from django.core.mail import EmailMessage
 
 
 class SendEmail:
-    """Send letter to email for confirm"""
+    """Send letter to email"""
     __from_email = 'alexnovpac@gmail.com'
 
     def __init__(self, to_email, email_subject, body):

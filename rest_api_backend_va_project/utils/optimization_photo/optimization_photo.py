@@ -1,9 +1,10 @@
-from PIL import Image, UnidentifiedImageError
+import os
 from django.http import JsonResponse
 from django.conf import settings
 from rest_framework import status
+from PIL import Image, UnidentifiedImageError
+
 from user.models import User
-import os
 
 
 def optimization_photo(user: User, message_success: str, message_error: str, json_response: bool):

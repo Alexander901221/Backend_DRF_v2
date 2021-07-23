@@ -1,12 +1,9 @@
-"""General web socket middlewares
-"""
-
+from django.contrib.auth.models import AnonymousUser
+from rest_framework_simplejwt.state import User
+from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
 from channels.auth import AuthMiddlewareStack
 from channels.db import database_sync_to_async
 from channels.middleware import BaseMiddleware
-from django.contrib.auth.models import AnonymousUser
-from rest_framework_simplejwt.authentication import JWTTokenUserAuthentication
-from rest_framework_simplejwt.state import User
 
 
 @database_sync_to_async

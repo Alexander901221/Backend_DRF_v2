@@ -1,10 +1,11 @@
 from django.db import models
+
 from user.models import User
 from ad.models import Ad
 
 
 class Room(models.Model):
-    """Модель комнаты чата"""
+    """Model room chat"""
     ad = models.ForeignKey(Ad, verbose_name="Объявление", on_delete=models.CASCADE)
     invited = models.ManyToManyField(User, verbose_name="Участники", related_name="invited_user")
 
@@ -14,7 +15,7 @@ class Room(models.Model):
 
 
 class Chat(models.Model):
-    """Модель чата"""
+    """Model chat"""
     room = models.ForeignKey(Room, verbose_name="Комната чата", on_delete=models.CASCADE)
     user = models.ForeignKey(User, verbose_name="Пользователь", on_delete=models.CASCADE)
     text = models.TextField("Сообщение", max_length=500)

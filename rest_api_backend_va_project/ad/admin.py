@@ -1,10 +1,10 @@
 from django.contrib import admin
+
 from .models import Ad
 
 def make_published(modeladmin, request, queryset):
     queryset.update(is_published=True)
 make_published.short_description = "Опубликовать выбранные Объявления"
-
 
 class AdAdmin(admin.ModelAdmin):
     list_display = (

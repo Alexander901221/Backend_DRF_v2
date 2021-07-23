@@ -1,17 +1,18 @@
-from rest_framework import generics, status
-from django.http import JsonResponse
-from rest_framework.views import APIView
-from .serializers import ParticipantSerializer
-from ad.models import Ad
-from django.db.models import Q
-from bid.models import Bid
-from user.models import User
 from loguru import logger
-from participant.models import Participant
-from room_chat.models import Room
+from django.http import JsonResponse
+from django.db.models import Q
+from rest_framework import generics, status
+from rest_framework.views import APIView
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
-from utils.permissions.permissions import EmailIsVerified, AccountIsVerified
+
+from .serializers import ParticipantSerializer
+from .models import Participant
+from ad.models import Ad
+from bid.models import Bid
+from user.models import User
+from room_chat.models import Room
+from utils.permissions.permissions import AccountIsVerified
 
 
 class ParticipantRetrieveAPIView(generics.RetrieveAPIView):
@@ -24,13 +25,15 @@ class ParticipantRetrieveAPIView(generics.RetrieveAPIView):
         ad_id = self.kwargs['ad_pk']
         participant_id = self.kwargs['participant_pk']
 
-        ad = Participant.objects.filter(Q(ad__author__pk=request.user.pk) & Q(ad_id=ad_id)).values('pk')
+        ad = Participant.objects \
+            .filter(Q(ad__author__pk=request.user.pk) & Q(ad_id=ad_id)) \
+            .values('pk')
 
         participant = Participant.objects \
             .filter(Q(ad__author__pk=request.user.pk) & Q(pk=participant_id)) \
             .values(
-            'id', 'number_of_person', 'number_of_girls', 'number_of_boys', 'photos', 'create_ad',
-            'user_id', 'user__username', 'user__photo', 'user__sex'
+            'id', 'number_of_person', 'number_of_girls', 'number_of_boys', 'photos',
+            'create_ad', 'user_id', 'user__username', 'user__photo', 'user__sex'
         )
 
         if not ad:
@@ -260,9 +263,7 @@ class ParticipantDestroyAPIView(generics.DestroyAPIView):
                 },
                 status=status.HTTP_200_OK
             )
-            # удаление из комнаты чата
-            #
-            #
+
         else:
             return JsonResponse(
                 {

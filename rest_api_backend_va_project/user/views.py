@@ -1,20 +1,20 @@
-from rest_framework import generics, permissions, views, status
-from rest_framework.parsers import MultiPartParser, FormParser
-from rest_framework.parsers import JSONParser
+import os
+from loguru import logger
+from random import randint
 from django.http import JsonResponse
 from django.db import IntegrityError
 from django.conf import settings
-from random import randint
-import os
+from django.contrib.auth.hashers import check_password, make_password
+from rest_framework import generics, permissions, views, status
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import JSONParser
 
 from .serializers import UserSerializers, \
     ChangePasswordSerializer, GetMeSerializer, UpdateUserSerializers, SubscriptionSerializer
-from .models import User, Subscription
+from .models import *
 from utils.send_letter_on_email.send_letter_on_email import SendEmail
 from utils.optimization_photo.optimization_photo import optimization_photo
 from utils.format_images.format_images import check_uploaded_image_format
-from django.contrib.auth.hashers import check_password, make_password
-from loguru import logger
 from utils.permissions.permissions import EmailIsVerified, AccountIsVerified
 
 
@@ -175,12 +175,6 @@ class RegisterView(views.APIView):
                          '\n\n' + f'Если вы {data["first_name"]} не запрашивали это сообщение, проигнорируйте его.' + '\n\n' + 'С уважением,' + '\n' + 'Команда VA'
             email_subject = 'Подтверждения вашего E-Mail'
             to_email = data['email']
-            # data_send_mail = {
-            #     'email_body': email_body,
-            #     'email_subject': email_subject,
-            #     'to_email': to_email
-            # }
-            # Util.send_email(data=data_send_mail)
 
             send_letter = SendEmail(to_email, email_subject, email_body)
 
@@ -245,12 +239,10 @@ class ForgetPassword(views.APIView):
                          f'Если Вы не запрашивали это сообщение, проигнорируйте его.' + '\n\n' + 'С уважением,' + '\n' + 'Команда VA'
             email_subject = 'Восстановление пароля'
             to_email = data['email']
-            data_send_mail = {
-                'email_body': email_body,
-                'email_subject': email_subject,
-                'to_email': to_email
-            }
-            Util.send_email(data=data_send_mail)
+
+            send_letter = SendEmail(to_email, email_subject, email_body)
+
+            send_letter.send()
 
             return JsonResponse(
                 {
@@ -401,8 +393,8 @@ class MySubscriber(views.APIView):
 
     @logger.catch
     def get(self, request, *args, **kwargs):
-        my_subscriber = Subscription.objects\
-            .filter(author_id=request.user.pk)\
+        my_subscriber = Subscription.objects \
+            .filter(author_id=request.user.pk) \
             .values('date_start', 'date_end')
 
         if my_subscriber:

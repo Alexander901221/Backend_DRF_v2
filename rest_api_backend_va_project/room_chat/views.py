@@ -1,15 +1,16 @@
+from loguru import logger
+from django.http import JsonResponse
 from django.db.models import Q
-from rest_framework import permissions, status
 from django.shortcuts import render
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import RoomSerializers, ChatSerializer
-from .models import Room, Chat
-from django.http import JsonResponse
 from rest_framework.pagination import PageNumberPagination
+
+from .serializers import *
+from .models import *
 from utils.mixins.pagination import PaginationHandlerMixin
-from utils.permissions.permissions import EmailIsVerified, AccountIsVerified
-from loguru import logger
+from utils.permissions.permissions import AccountIsVerified
 
 
 class BasicPagination(PageNumberPagination):
@@ -62,7 +63,9 @@ class Messages(APIView, PaginationHandlerMixin):
 
 
 def room(request, room_name):
-    messages = Chat.objects.order_by('-date').filter(room_id=room_name)[:10]
+    messages = Chat.objects \
+                   .order_by('-date') \
+                   .filter(room_id=room_name)[:10]
     return render(request, 'chat/room.html', {
         'room_name': room_name,
         'messages': messages
@@ -70,7 +73,9 @@ def room(request, room_name):
 
 
 def get_my_rooms_2(request):
-    rooms = Room.objects.filter(invited__pk=request.user.pk).values('pk')
+    rooms = Room.objects \
+        .filter(invited__pk=request.user.pk) \
+        .values('pk')
 
     return JsonResponse(
         {

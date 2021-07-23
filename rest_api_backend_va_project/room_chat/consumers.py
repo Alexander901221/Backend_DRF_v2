@@ -1,24 +1,22 @@
 import json
-from channels.generic.websocket import AsyncWebsocketConsumer, AsyncJsonWebsocketConsumer
+from django.db.models import Q
+from django.contrib.auth.models import AnonymousUser
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
 from channels.exceptions import DenyConnection
 from channels.db import database_sync_to_async
 
-from django.contrib.auth.models import AnonymousUser
-from django.db.models import Q
 from .models import Chat, Room
 from user.models import User
-from django.conf import settings
 
 
 class ChatConsumer(AsyncJsonWebsocketConsumer):
-    # Присоединение к комнате
     async def connect(self):
-        print('CONNECT')
-        self.room_name = self.scope['url_route']['kwargs']['room_name']  # id_room
-        self.room_group_name = 'chat_%s' % self.room_name  # chat_(id_room)
+        print('Connect (consumer - Chat)')
+        self.room_name = self.scope['url_route']['kwargs']['room_name']
+        self.room_group_name = 'chat_%s' % self.room_name
         self.user = self.scope["user"]
 
-        await self.check_user()  # Проверка user на авторизацию и, на то что он есть в этой комнате
+        await self.check_user()  # Check user authentication
 
         await self.channel_layer.group_add(
             self.room_group_name,
@@ -27,20 +25,17 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
         await self.accept()
 
-    # Отсоединение
     async def disconnect(self, close_code):
-        print('DISCONNECT')
-        # Покинуть группу
+        print('Disconnect (consumer - Chat)')
+
         await self.channel_layer.group_discard(
             self.room_group_name,
             self.channel_name
         )
 
-    # Получение сообщения от WebSocket
     async def receive(self, text_data):
-        print('RECEIVE')
+        print('receive (consumer - Chat)')
         new_message = await self.create_message(text_data)
-        print('images --> ', settings.BASE_URL + 'images/' + str(new_message.user.photo))
 
         data = {
             'username': new_message.user.username,
@@ -49,7 +44,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             'text': new_message.text,
             'photo': '/images/' + str(new_message.user.photo)
         }
-        # Отправить сообщение в комнату
+
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -58,22 +53,17 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             }
         )
 
-    # Получение сообщения от группы
     async def chat_message(self, event):
-        print('CHAT_MESSAGE')
+        print('chat_message (consumer - Chat)')
         message = event['message']
 
-        # Отправить сообщение в WebSocket
         await self.send(text_data=json.dumps({
             'message_to_room': message
         }))
-    
-    async def onopen(self):
-        print('self -> ', self)
 
-    @database_sync_to_async  # Чтобы мы могли обращаться к базе внутри функции
+    @database_sync_to_async
     def create_message(self, text):
-        print('CREATE_MESSAGE')
+        print('create_message (consumer - Chat)')
         room = Room.objects.get(pk=self.room_name)
         user = User.objects.get(pk=self.user.pk)
         create_new_message = Chat.objects.create(
@@ -85,13 +75,11 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         return create_new_message
 
     @database_sync_to_async
-    def check_user(self):  # Проверка user на авторизованного и на существование в комнате
+    def check_user(self):  # Check user authentication and exists in the room
         if self.scope['user'] == AnonymousUser():
             raise DenyConnection("Такого пользователя не существует")
 
         user_in_room = Room.objects.filter(Q(pk=self.room_name) & Q(invited__pk=self.user.pk)).exists()
-        print('user_in_room --> ', user_in_room)
 
         if not user_in_room:
             raise DenyConnection('Пользователя нет в данной комнате')
-

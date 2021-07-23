@@ -1,15 +1,14 @@
+from loguru import logger
 from django.db.models import Q
-from rest_framework import generics, permissions, status
 from django.http import JsonResponse
+from rest_framework import generics, status
+from rest_framework.views import APIView
+from rest_framework.parsers import JSONParser
 
+from .serializers import CreateAdSerializer, AdSerializer, UpdateAdSerializer, GetMyDataSerializer, GetAllAdsForMap
 from .models import Ad
 from user.models import User
 from room_chat.models import Room
-from .serializers import CreateAdSerializer, AdSerializer, UpdateAdSerializer, GetMyDataSerializer, GetAllAdsForMap
-from rest_framework.views import APIView
-from rest_framework.parsers import JSONParser
-from loguru import logger
-import json
 from utils.permissions.permissions import EmailIsVerified, AccountIsVerified
 
 
@@ -20,36 +19,39 @@ class AdListView(generics.ListAPIView):
 
     @logger.catch
     def get_queryset(self):
-        return Ad.custom_manager\
-            .custom_filter(city=self.request.user.city)\
+        return Ad.custom_manager \
+            .custom_filter(city=self.request.user.city) \
             .only('id', 'geolocation')
+
 
 class AdRetrieveAPIView(generics.ListAPIView):
     """Getting ad by param (GET)"""
     serializer_class = AdSerializer
     permission_classes = [EmailIsVerified]
-    
+
     @logger.catch
     def get(self, request, *args, **kwargs):
-        ad = Ad.custom_manager.custom_filter().get(id=kwargs['pk'], city=self.request.user.city)
+        ad = Ad.custom_manager \
+            .custom_filter() \
+            .get(id=kwargs['pk'], city=self.request.user.city)
 
         if ad:
             return JsonResponse(
-                    {
-                        'status': 'success',
-                        "ad": ad.to_json()
-                    },
-                    status=status.HTTP_200_OK
+                {
+                    'status': 'success',
+                    "ad": ad.to_json()
+                },
+                status=status.HTTP_200_OK
             )
         else:
             return JsonResponse(
-                        {
-                            'status': 'error',
-                            'message': 'Данного объявления не существует'
-                        },
-                        status=status.HTTP_400_BAD_REQUEST
+                {
+                    'status': 'error',
+                    'message': 'Данного объявления не существует'
+                },
+                status=status.HTTP_400_BAD_REQUEST
             )
-        
+
 
 class AdCreateView(APIView):
     """Create ad (post)"""
@@ -83,11 +85,9 @@ class AdCreateView(APIView):
 
         ad.participants.add(User.objects.get(pk=user.pk))
 
-        # Create room, and add author in the room
+        # Create room, and add author in the room invited
         room = Room.objects.create(ad=ad)
         room.invited.add(user)
-
-        # WebSocket notification ("Объявление успешно созданно")
 
         return JsonResponse(
             {
