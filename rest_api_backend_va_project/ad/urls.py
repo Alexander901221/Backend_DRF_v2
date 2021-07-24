@@ -20,7 +20,4 @@ urlpatterns = [
 
     # Get all my ads
     path('my_ads/', MyAdsListAPIView.as_view()),
-
-    # Notification
-    path('notification/', AdView.as_view())
 ]

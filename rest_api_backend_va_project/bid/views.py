@@ -37,7 +37,7 @@ class BidRetrieveAPIView(APIView):
                     'status': "error",
                     'message': "У вас нет данного объявления"
                 },
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_204_NO_CONTENT
             )
 
         if not bid:
@@ -46,7 +46,7 @@ class BidRetrieveAPIView(APIView):
                     'status': "error",
                     'message': "У вас нет данной заявки"
                 },
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_204_NO_CONTENT
             )
 
         if ad and bid:
@@ -117,7 +117,10 @@ class MyBidsRetrieveAPIView(APIView):
             .filter(Q(ad__author__pk=self.request.user.pk) & Q(ad_id=id_ad)) \
             .select_related('author', 'ad__author', 'ad') \
             .annotate(username=F('author__username'), photo_user=F('author__photo')) \
-            .values('id', 'username', 'photo_user', 'photos__photo_participants', 'photos__photo_alcohol', 'author_id')
+            .values(
+            'id', 'username', 'photo_user', 'photos__photo_participants', 'photos__photo_alcohol',
+            'author_id', 'number_of_person', 'number_of_girls', 'number_of_boys'
+        )
 
         if bids:
             return JsonResponse(
@@ -131,10 +134,10 @@ class MyBidsRetrieveAPIView(APIView):
         else:
             return JsonResponse(
                 {
-                    'status': 'error',
+                    'status': 'info',
                     'message': 'У вас пока нет заявок'
                 },
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_204_NO_CONTENT
             )
 
 
@@ -177,7 +180,7 @@ class BidRejected(generics.DestroyAPIView):
                     'status': 'error',
                     'message': 'Данной заявки не существует'
                 },
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_204_NO_CONTENT
             )
 
 

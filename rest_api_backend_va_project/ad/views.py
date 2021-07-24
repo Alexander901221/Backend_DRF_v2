@@ -49,7 +49,7 @@ class AdRetrieveAPIView(generics.ListAPIView):
                     'status': 'error',
                     'message': 'Данного объявления не существует'
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_204_NO_CONTENT
             )
 
 
@@ -145,7 +145,7 @@ class AdUpdateView(generics.UpdateAPIView):
                     'status': 'error',
                     'message': 'Данного объявления не существует'
                 },
-                status=status.HTTP_200_OK
+                status=status.HTTP_204_NO_CONTENT
             )
 
 
@@ -177,7 +177,7 @@ class AdDestroyAPIView(generics.DestroyAPIView):
                     'status': 'error',
                     'message': 'Данного объявления не существует'
                 },
-                status=status.HTTP_200_OK
+                status=status.HTTP_204_NO_CONTENT
             )
 
 
@@ -192,16 +192,3 @@ class MyAdsListAPIView(generics.ListAPIView):
         return Ad.custom_manager.custom_order_by('party_date') \
             .defer("create_ad", "author__password") \
             .filter(author_id=self.request.user.pk)
-
-
-# Notification
-from django.views.generic import TemplateView
-
-
-class AdView(TemplateView):
-    template_name = "ad.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['user'] = self.request.user
-        return context

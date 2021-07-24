@@ -7,7 +7,7 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 
 from .serializers import ParticipantSerializer
-from .models import Participant
+from .models import *
 from ad.models import Ad
 from bid.models import Bid
 from user.models import User
@@ -32,8 +32,8 @@ class ParticipantRetrieveAPIView(generics.RetrieveAPIView):
         participant = Participant.objects \
             .filter(Q(ad__author__pk=request.user.pk) & Q(pk=participant_id)) \
             .values(
-            'id', 'number_of_person', 'number_of_girls', 'number_of_boys', 'photos',
-            'create_ad', 'user_id', 'user__username', 'user__photo', 'user__sex'
+            'id', 'number_of_person', 'number_of_girls', 'number_of_boys', 'photos', 'create_ad', 'user_id',
+            'user__username', 'user__photos__photo_participants', 'user__photos__photo_alcohol', 'user__sex'
         )
 
         if not ad:
@@ -42,7 +42,7 @@ class ParticipantRetrieveAPIView(generics.RetrieveAPIView):
                     'status': "error",
                     'message': "У вас нет данного объявления"
                 },
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_204_NO_CONTENT
             )
 
         if not participant:
@@ -51,7 +51,7 @@ class ParticipantRetrieveAPIView(generics.RetrieveAPIView):
                     'status': "error",
                     'message': "У вас нет данного участника"
                 },
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_204_NO_CONTENT
             )
 
         if ad and participant:
@@ -66,13 +66,20 @@ class ParticipantRetrieveAPIView(generics.RetrieveAPIView):
 
 
 def to_json(obj):
+    photo_alcohol = '/images/' + str(obj.photos.photo_alcohol) if str(obj.photos.photo_alcohol) else ''
+    photo_participants = '/images/' + str(obj.photos.photo_participants) if str(obj.photos.photo_participants) else ''
     return {
         "id_ad": obj.ad.pk,
         "participant_id": obj.pk,
         "user": {
             "id": obj.user.pk,
             "username": obj.user.username,
-            "photo": '/images/' + str(obj.user.photo)
+            "photo": '/images/' + str(obj.user.photo),
+            'photo_participants': photo_participants,
+            'photo_alcohol': photo_alcohol,
+            "number_of_person": obj.number_of_person,
+            "number_of_girls": obj.number_of_girls,
+            "number_of_boys": obj.number_of_boys,
         }
     }
 
@@ -109,7 +116,7 @@ class MyParticipantsListAPIView(APIView):
                     'status': "error",
                     'message': "У вас нет участников"
                 },
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_204_NO_CONTENT
             )
 
 
@@ -141,8 +148,10 @@ class ParticipantCreateView(generics.CreateAPIView):
                 .filter(author_id=user_id, ad__author__pk=self.request.user.pk)
 
             if check_user_bid:
-                for bid in check_user_bid.values('number_of_person', 'number_of_girls', 'number_of_boys', 'photos'):
-
+                for bid in check_user_bid.values(
+                        'number_of_person', 'number_of_girls', 'number_of_boys',
+                        'photos__photo_participants', 'photos__photo_alcohol'
+                ):
                     participant = Participant.objects \
                         .filter(Q(ad__author__pk=request.user.pk) & Q(ad_id=ad_id) & Q(user_id=user_id))
                     if participant:
@@ -154,13 +163,17 @@ class ParticipantCreateView(generics.CreateAPIView):
                             status=status.HTTP_404_NOT_FOUND
                         )
                     else:
+                        photos = ParticipantImages.objects.create(
+                            photo_participants=bid['photos__photo_participants'],
+                            photo_alcohol=bid['photos__photo_alcohol']
+                        )
                         participant = participant.create(
                             user=user,
                             ad=my_ad,
                             number_of_person=int(bid['number_of_person']),
                             number_of_girls=int(bid['number_of_girls']),
                             number_of_boys=int(bid['number_of_boys']),
-                            photos=bid['photos']
+                            photos=photos
                         )
 
                         #  Уведомление об успешном одобреннии заявки
@@ -182,7 +195,11 @@ class ParticipantCreateView(generics.CreateAPIView):
                                         "number_of_person": participant.number_of_person,
                                         "number_of_girls": participant.number_of_girls,
                                         "number_of_boys": participant.number_of_boys,
-                                        "photos": '/images/' + str(participant.photos)
+                                        "photos": {
+                                            "photo_participants": '/images/' + str(
+                                                participant.photos.photo_participants),
+                                            "photo_alcohol": '/images/' + str(participant.photos.photo_alcohol),
+                                        }
                                     }
                                 }
                             }
@@ -209,7 +226,7 @@ class ParticipantCreateView(generics.CreateAPIView):
                         'status': "error",
                         'message': "Данного user нет в ваших заявках"
                     },
-                    status=status.HTTP_404_NOT_FOUND
+                    status=status.HTTP_204_NO_CONTENT
                 )
         else:
             return JsonResponse(
@@ -217,7 +234,7 @@ class ParticipantCreateView(generics.CreateAPIView):
                     'status': "error",
                     'message': "У вас не созданного объявление"
                 },
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_204_NO_CONTENT
             )
 
 
@@ -233,7 +250,7 @@ class ParticipantDestroyAPIView(generics.DestroyAPIView):
         participant_id = kwargs['participant_pk']
 
         user = self.request.user.pk
-        participant = Participant.objects.filter(Q(ad__author__pk=user) & Q(ad_id=ad_id) & Q(pk=participant_id))
+        participant = Participant.objects.get(Q(ad__author__pk=user) & Q(ad_id=ad_id) & Q(pk=participant_id))
 
         my_ad = Ad.objects.get(author_id=user)
 
@@ -255,6 +272,7 @@ class ParticipantDestroyAPIView(generics.DestroyAPIView):
             )
 
             participant.delete()
+            participant.photos.delete()
 
             return JsonResponse(
                 {
@@ -270,5 +288,5 @@ class ParticipantDestroyAPIView(generics.DestroyAPIView):
                     'status': 'error',
                     'message': 'Данного участника нет у вас в списке'
                 },
-                status=status.HTTP_404_NOT_FOUND
+                status=status.HTTP_204_NO_CONTENT
             )

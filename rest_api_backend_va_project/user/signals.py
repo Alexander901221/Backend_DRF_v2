@@ -12,7 +12,7 @@ def on_change(sender, instance: User, **kwargs):
     print('sender (on_change() User - signals.py) -> ', sender)
     print('instance (on_change() User - signals.py) -> ', instance)
 
-    if instance.id is None: # Create a new user
+    if instance.id is None:  # Create a new user
         channel_layer = get_channel_layer()
         async_to_sync(channel_layer.group_send)(
             f"user_{str(instance.pk)}", {
@@ -24,14 +24,13 @@ def on_change(sender, instance: User, **kwargs):
     else:
         previous = User.objects.get(id=instance.id)
         print('previous (on_change() User - signals.py) -> ', previous)
-        if previous.confirm_account != instance.confirm_account: # check on change field
+        if previous.confirm_account != instance.confirm_account:  # check on change field
             if instance.confirm_account:
                 channel_layer = get_channel_layer()
                 async_to_sync(channel_layer.group_send)(
                     f"user_{str(instance.pk)}", {
                         "type": "user.gossip",
                         "event": "Success confirm account",
-                        "username": instance.username,
                         "message": "Ваш аккаунт успешно подтвержден"
                     }
                 )
@@ -41,20 +40,6 @@ def on_change(sender, instance: User, **kwargs):
                     f"user_{str(instance.pk)}", {
                         "type": "user.gossip",
                         "event": "Error confirm account",
-                        "username": instance.username,
                         "message": "Ваш аккаунт не подтвержден"
                     }
                 )
-
-
-# #  Уведомление о удаление пользователя
-# @receiver(pre_delete, sender=User)
-# def announce_new_user2(sender, instance, **kwargs):
-#     channel_layer = get_channel_layer()
-#     async_to_sync(channel_layer.group_send)(
-#         f"user_{str(instance.pk)}", {
-#             "type": "user.gossip",
-#             "event": "Delete User",
-#             "username": instance.username
-#         }
-#     )

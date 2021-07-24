@@ -26,7 +26,12 @@ class MyRooms(APIView):
         rooms = Room.objects.all().filter(invited__pk=request.user.pk)
         if rooms:
             serializer = RoomSerializers(rooms, many=True)
-            return Response({"data": serializer.data})
+            return Response(
+                {
+                    "status": "success",
+                    "data": serializer.data
+                }
+            )
         else:
             return JsonResponse(
                 {
@@ -56,9 +61,9 @@ class Messages(APIView, PaginationHandlerMixin):
             return JsonResponse(
                 {
                     'status': "error",
-                    'message': "Данной комнаты не существует"
+                    'message': "У вас пока нет сообщений"
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_204_NO_CONTENT
             )
 
 
