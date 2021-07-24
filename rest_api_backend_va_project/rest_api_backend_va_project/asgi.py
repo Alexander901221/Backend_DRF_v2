@@ -7,7 +7,6 @@ from channels.routing import ProtocolTypeRouter, URLRouter
 from room_chat.chatmiddleware import JwtAuthMiddleware
 from room_chat.consumers import ChatConsumer
 from user.consumers import NoseyConsumer
-from bid.consumers import BidConsumer
 from ad.consumers import AdConsumer
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "rest_api_backend_va_project.settings")
@@ -19,7 +18,6 @@ application = ProtocolTypeRouter({
             path('ws/chat/<room_name>/', ChatConsumer.as_asgi()),
             path('ws/notification/user/<int:user>/', NoseyConsumer.as_asgi()),
             path('ws/notification/ad/<int:city>/', AdConsumer.as_asgi()),
-            path('ws/notification/bid/<int:ad>/', BidConsumer.as_asgi())
         ])
     ),
 })

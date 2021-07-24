@@ -21,12 +21,9 @@ class NoseyConsumer(AsyncJsonWebsocketConsumer):
             self.user_group_name, 
             self.channel_name
         )
-        print(f"Removed {self.channel_name} channel to gossip")
 
     async def user_gossip(self, event):
         print('user_gossip (consumer)')
-        print('event (consumer) ==> ', event)
         await self.send(text_data=json.dumps({
             'message_to_room': event
         }))
-        print(f"Got message {event} at {self.channel_name}")

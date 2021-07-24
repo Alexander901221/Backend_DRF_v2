@@ -14,7 +14,4 @@ urlpatterns = [
 
     # Receiving my bids for pk
     path('my_bids/<int:pk>/', MyBidsRetrieveAPIView.as_view()),
-
-    # Notification
-    path('notification/', BidView.as_view())
 ]

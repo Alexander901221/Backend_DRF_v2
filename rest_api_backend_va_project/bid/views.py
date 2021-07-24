@@ -182,17 +182,3 @@ class BidRejected(generics.DestroyAPIView):
                 },
                 status=status.HTTP_204_NO_CONTENT
             )
-
-
-from django.views.generic import TemplateView
-
-
-class BidView(TemplateView):
-    template_name = "bid.html"
-
-    def get_context_data(self, **kwargs):
-        id_ad = 3
-        context = super().get_context_data(**kwargs)
-        context['user'] = self.request.user
-        context['id_ad'] = id_ad
-        return context

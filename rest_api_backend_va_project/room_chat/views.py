@@ -65,27 +65,3 @@ class Messages(APIView, PaginationHandlerMixin):
                 },
                 status=status.HTTP_204_NO_CONTENT
             )
-
-
-def room(request, room_name):
-    messages = Chat.objects \
-                   .order_by('-date') \
-                   .filter(room_id=room_name)[:10]
-    return render(request, 'chat/room.html', {
-        'room_name': room_name,
-        'messages': messages
-    })
-
-
-def get_my_rooms_2(request):
-    rooms = Room.objects \
-        .filter(invited__pk=request.user.pk) \
-        .values('pk')
-
-    return JsonResponse(
-        {
-            'status': 'success',
-            'message': rooms
-        },
-        status=status.HTTP_200_OK
-    )
