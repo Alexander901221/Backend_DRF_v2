@@ -12,6 +12,7 @@ from rest_framework.parsers import JSONParser
 from .serializers import UserSerializers, \
     ChangePasswordSerializer, GetMeSerializer, UpdateUserSerializers, SubscriptionSerializer
 from .models import *
+from .tasks import send_letter_to_email
 from utils.send_letter_on_email.send_letter_on_email import SendEmail
 from utils.optimization_photo.optimization_photo import optimization_photo
 from utils.format_images.format_images import check_uploaded_image_format
@@ -176,9 +177,7 @@ class RegisterView(views.APIView):
             email_subject = 'Подтверждения вашего E-Mail'
             to_email = data['email']
 
-            send_letter = SendEmail(to_email, email_subject, email_body)
-
-            send_letter.send()
+            send_letter_to_email.delay(to_email, email_subject, email_body)
 
             return JsonResponse(
                 {
@@ -240,9 +239,7 @@ class ForgetPassword(views.APIView):
             email_subject = 'Восстановление пароля'
             to_email = data['email']
 
-            send_letter = SendEmail(to_email, email_subject, email_body)
-
-            send_letter.send()
+            send_letter_to_email.delay(to_email, email_subject, email_body)
 
             return JsonResponse(
                 {
