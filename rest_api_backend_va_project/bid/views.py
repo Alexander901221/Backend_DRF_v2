@@ -27,9 +27,7 @@ class BidRetrieveAPIView(APIView):
 
         bid = Bid.objects \
             .filter(Q(ad__author__pk=request.user.pk) & Q(pk=bid_id)) \
-            .values(
-            'id', 'photos', 'create_ad', 'author_id', 'author__username', 'author__photo'
-        )
+            .values('id', 'photos', 'create_ad', 'author_id', 'author__username', 'author__photo')
 
         if not ad:
             return JsonResponse(

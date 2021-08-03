@@ -1,8 +1,8 @@
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 import json
 
-class NoseyConsumer(AsyncJsonWebsocketConsumer):
 
+class NoseyConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         print('Connect (consumer) USER')
         self.id_user = self.scope['url_route']['kwargs']['user']

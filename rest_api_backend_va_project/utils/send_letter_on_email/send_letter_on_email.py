@@ -1,9 +1,10 @@
 from django.core.mail import EmailMessage
+from django.conf import settings
 
 
 class SendEmail:
     """Send letter to email"""
-    __from_email = 'alexnovpac@gmail.com'
+    __from_email = settings.EMAIL_HOST_USER
 
     def __init__(self, to_email, email_subject, body):
         self.__to_email = to_email

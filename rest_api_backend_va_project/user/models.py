@@ -6,9 +6,12 @@ from utils.choices.choices import CITIES, SEX
 
 
 class Subscription(models.Model):
-    # subscribers = models.ForeignKey("User", on_delete=models.CASCADE, verbose_name='Подписчики')
-    # # subscribers = models.ManyToManyField("User", verbose_name="Подписчики")
-    author = models.ForeignKey("User", on_delete=models.CASCADE, verbose_name='Подписчик', related_name="author_subscriber")
+    author = models.ForeignKey(
+        "User",
+        on_delete=models.CASCADE,
+        verbose_name='Подписчик',
+        related_name="author_subscriber"
+    )
     date_start = models.DateTimeField(auto_now_add=True, verbose_name="Дата начало подписки")
     date_end = models.DateTimeField(verbose_name="Дата конца подписки")
 
@@ -25,8 +28,15 @@ class User(AbstractUser):
     confirm_email = models.BooleanField(default=False)
     confirm_account = models.BooleanField(default=False)
     code_confirm = models.IntegerField(null=True, blank=True, unique=True)
-    subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, verbose_name='Подписка', null=True, blank=True)
-    last_activity = models.DateTimeField(default=now(),verbose_name="Последний раз в сети")
+    subscription = models.ForeignKey(
+        Subscription,
+        on_delete=models.SET_NULL,
+        verbose_name='Подписка',
+        null=True,
+        blank=True
+    )
+    last_activity = models.DateTimeField(default=now(), verbose_name="Последний раз в сети")
+
     class Meta:
         verbose_name = 'Пользователя'
         verbose_name_plural = 'Пользователи'

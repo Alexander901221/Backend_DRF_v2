@@ -1,4 +1,3 @@
-import json
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from asgiref.sync import async_to_sync
@@ -47,6 +46,7 @@ def on_change(sender, instance, **kwargs):
                             "author": {
                                 "id": previous.author.pk,
                             },
+                            "id_ad": previous.pk
                         }
                     }
                 )

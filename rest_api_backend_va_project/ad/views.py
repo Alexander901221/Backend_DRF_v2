@@ -21,7 +21,7 @@ class AdListView(generics.ListAPIView):
     def get_queryset(self):
         return Ad.custom_manager \
             .custom_filter(city=self.request.user.city) \
-            .only('id', 'geolocation')
+            .only('id', 'geolocation', 'party_date')
 
 
 class AdRetrieveAPIView(generics.ListAPIView):
@@ -76,7 +76,7 @@ class AdCreateView(APIView):
             title=data['title'],
             author=user,
             geolocation=data['geolocation'],
-            city=data['city'],
+            city=user.city,
             number_of_person=data['number_of_person'],
             number_of_girls=data['number_of_girls'],
             number_of_boys=data['number_of_boys'],

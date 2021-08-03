@@ -1,4 +1,5 @@
 from rest_framework import serializers
+
 from .models import Ad
 from user.serializers import UserAdOnMapSerializer
 from user.serializers import UserSerializers, UserRoomChatSerializer
@@ -19,7 +20,8 @@ class CreateAdSerializer(serializers.ModelSerializer):
 class GetAllAdsForMap(serializers.ModelSerializer):
     class Meta:
         model = Ad
-        fields = ('id', 'geolocation',)
+        fields = ('id', 'geolocation', 'party_date')
+
 
 class AdSerializer(serializers.ModelSerializer):
     participants = UserAdOnMapSerializer(many=True)
@@ -28,8 +30,8 @@ class AdSerializer(serializers.ModelSerializer):
     class Meta:
         model = Ad
         fields = (
-            'id', 'title', 'author', 'number_of_person', 
-            'number_of_girls', 'number_of_boys', 'party_date', 
+            'id', 'title', 'author', 'number_of_person',
+            'number_of_girls', 'number_of_boys', 'party_date',
             'participants'
         )
         read_only_fields = fields

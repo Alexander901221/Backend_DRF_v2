@@ -6,7 +6,11 @@ class AccountIsVerified(BasePermission):
 
     def has_permission(self, request, view):
         return bool(
-            request.user and request.user.is_authenticated and request.user.confirm_email and request.user.confirm_account)
+            request.user and
+            request.user.is_authenticated and
+            request.user.confirm_email and
+            request.user.confirm_account
+        )
 
 
 class EmailIsVerified(BasePermission):
