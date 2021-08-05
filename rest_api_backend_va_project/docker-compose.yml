@@ -30,6 +30,18 @@ services:
       - ./redis.conf:/usr/local/etc/redis/redis.conf
     ports:
       - "6379"
+  celery:
+    restart: always
+    build:
+        context: .
+        dockerfile: DockerFile
+    command: celery -A rest_api_backend_va_project worker -l info
+    volumes:
+        - .:/usr/src/Backend_DRF_v2
+    depends_on:
+        - db
+        - redis
+        - django
 volumes:
   postgres_data:
 
