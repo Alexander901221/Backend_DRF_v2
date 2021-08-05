@@ -218,7 +218,7 @@ class ParticipantCreateView(generics.CreateAPIView):
                         "status": "success",
                         "message": "Вы успешно добавили пользователя в список участников"
                     },
-                    status=status.HTTP_200_OK
+                    status=status.HTTP_201_CREATED
                 )
             else:
                 return JsonResponse(
@@ -232,7 +232,7 @@ class ParticipantCreateView(generics.CreateAPIView):
             return JsonResponse(
                 {
                     'status': "error",
-                    'message': "У вас не созданного объявление"
+                    'message': "У вас нет созданного объявление"
                 },
                 status=status.HTTP_204_NO_CONTENT
             )

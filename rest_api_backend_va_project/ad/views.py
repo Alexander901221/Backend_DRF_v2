@@ -95,7 +95,7 @@ class AdCreateView(APIView):
                 'message': "Объявление успешно созданно и отправлено на модерацию. "
                            "Если с ним все будет хорошо, оно будет опубликовано и появится на карте."
             },
-            status=status.HTTP_200_OK
+            status=status.HTTP_201_CREATED
         )
 
 

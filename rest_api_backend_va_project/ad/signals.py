@@ -6,13 +6,6 @@ from channels.layers import get_channel_layer
 from .models import Ad
 
 
-def to_json(obj):
-    return {
-        'id': obj.pk,
-        'photo': '/images/' + str(obj.photo)
-    }
-
-
 #  Уведомление о создание и изменения объявления
 @receiver(pre_save, sender=Ad)
 def on_change(sender, instance, **kwargs):
@@ -28,10 +21,6 @@ def on_change(sender, instance, **kwargs):
         )
     else:
         previous = Ad.objects.get(id=instance.id)
-        participant = []
-        for element in previous.participants.all():
-            result = to_json(element)
-            participant.append(result)
 
         if previous.is_published != instance.is_published:  # check on change field
             if instance.is_published:

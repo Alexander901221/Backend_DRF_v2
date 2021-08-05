@@ -5,6 +5,7 @@ from rest_framework import status
 from PIL import Image, UnidentifiedImageError
 
 from user.models import User
+from bid.models import Bid, BidImages
 
 
 def optimization_photo(user: User, message_success: str, message_error: str, json_response: bool):
@@ -55,3 +56,22 @@ def optimization_photo(user: User, message_success: str, message_error: str, jso
             )
         else:
             return 'error'
+
+
+def converter_to_webp(bid: Bid, photos: BidImages, photo, key):
+    path = 'images/' + str(photo)
+
+    image_photo = Image.open(path)
+
+    photo_optimization = str(photo).split('.')
+
+    photo_path = '/'.join(photo_optimization[0].split('/')[0:-1]) + '/' + f'{str(bid.author.username)}' + f'-{str(bid.ad.title)}_{key}.webp'
+    image_photo.save(f'images/{photo_path}', format="WebP", lossless = True)
+
+    if key == 'photo_participants':
+        photos.photo_participants = photo_path
+    else:
+        photos.photo_alcohol = photo_path
+    
+    os.remove(path)
+    photos.save()

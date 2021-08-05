@@ -37,7 +37,7 @@ class MyRooms(APIView):
                     'status': "error",
                     'message': "У вас пока нет комнат"
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_204_NO_CONTENT
             )
 
 
@@ -54,7 +54,7 @@ class VoteCreate(views.APIView):
                     'status': 'error',
                     'message': 'Вас нет в данной комнате'
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_401_UNAUTHORIZED
             )
 
         if int(candidate) == request.user.pk:
@@ -99,7 +99,7 @@ class VoteCreate(views.APIView):
                     'status': 'success',
                     'message': ' Вы успешно начали голосование'
                 },
-                status=status.HTTP_200_OK
+                status=status.HTTP_201_CREATED
             )
         else:
             return JsonResponse(
@@ -107,7 +107,7 @@ class VoteCreate(views.APIView):
                     'status': 'error',
                     'message': 'Данного кандидата нет в комнате'
                 },
-                status=status.HTTP_400_BAD_REQUEST
+                status=status.HTTP_204_NO_CONTENT
             )
 
 

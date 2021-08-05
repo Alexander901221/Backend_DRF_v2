@@ -11,6 +11,7 @@ from .models import Bid, BidImages
 from ad.models import Ad
 from participant.models import Participant
 from utils.permissions.permissions import AccountIsVerified
+from utils.optimization_photo.optimization_photo import converter_to_webp
 
 
 class BidRetrieveAPIView(APIView):
@@ -85,7 +86,7 @@ class BidCreateView(views.APIView):
                 photo_alcohol=data['photo_alcohol']
             )
 
-            check_bid.create(
+            bid = check_bid.create(
                 author=self.request.user,
                 ad=ad,
                 number_of_person=data['number_of_person'],
@@ -94,12 +95,18 @@ class BidCreateView(views.APIView):
                 photos=photos
             )
 
+            for element in ['photo_participants', 'photo_alcohol']:
+                if element == 'photo_participants':
+                    converter_to_webp(bid, photos, photos.photo_participants, element)
+                else:
+                    converter_to_webp(bid, photos, photos.photo_alcohol, element)
+
             return JsonResponse(
                 {
                     'status': "success",
-                    'message': "Заявка успешно одобренна"
+                    'message': "Заявка успешно подана"
                 },
-                status=status.HTTP_200_OK
+                status=status.HTTP_201_CREATED
             )
 
 
